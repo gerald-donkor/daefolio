@@ -233,10 +233,35 @@ button, a, [tabindex] { touch-action: manipulation; }
   .motion-toggle { right: 76px; top: 16px; bottom: auto; width: 44px; min-height: 44px; padding: 0; justify-content: center; box-shadow: none; }
   .motion-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .project-aetherfield .mini-pill { visibility: hidden; }
-  .mobile-dialog { inset: 0; transform: none; width: 100%; height: 100dvh; max-height: 100dvh; padding: 32px 24px; border: 0; border-radius: 0; display: flex; flex-direction: column; animation: fade-in .25s; }
-  .mobile-dialog nav { margin-block: auto; gap: 20px; font-family: var(--font-serif); font-size: clamp(42px, 13vw, 68px); }
-  .mobile-dialog nav a { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line-dark); padding-block: 10px; }
+  .mobile-dialog { inset: 0; transform: none; width: 100%; height: 100dvh; max-height: 100dvh; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); border: 0; border-radius: 0; display: flex; flex-direction: column; animation: fade-in .25s; }
+  .mobile-dialog nav { margin-block: auto; gap: 16px; font-family: var(--font-serif); font-size: clamp(38px, 13vw, 68px); }
+  .mobile-dialog nav a { display: flex; align-items: center; justify-content: space-between; gap:12px; border-bottom: 1px solid var(--line-dark); padding-block: 10px; min-height:44px; }
   .mobile-dialog nav svg { width: 28px; color: var(--coral); }.menu-wordmark { font-size: 18px; }.menu-foot { color: var(--muted); font-size: 12px; padding-bottom: 24px; }
+}
+/* Shared UI primitives stay usable from 320px phones to ultrawide. */
+.dialog-content { width: min(760px, calc(100vw - 32px)); max-height: min(90dvh, 900px); overflow-y: auto; overscroll-behavior: contain; padding: clamp(20px, 5vw, 32px); }
+.dialog-title { font-size: clamp(32px, 8vw, 48px); line-height: 1.05; overflow-wrap: break-word; }
+.dialog-description, .dialog-overview { overflow-wrap: break-word; }
+.dialog-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.ui-button { max-width: 100%; }
+@media (max-width: 640px) {
+  .dialog-content > .project-visual { height: clamp(220px, 60vw, 300px); }
+  .dialog-actions { gap: 10px; }
+  .dialog-actions .ui-button { flex: 1 1 200px; }
+  .source-link { margin-left: 0; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+}
+@media (max-width: 480px) {
+  .dialog-content { width: calc(100vw - 20px); padding: 20px 16px; border-radius: 10px; }
+  .dialog-actions { flex-direction: column; align-items: stretch; }
+  .dialog-actions .ui-button { width: 100%; flex: none; white-space: normal; text-align: center; min-height: 48px; }
+  .ui-button-default { padding-inline: 18px; }
+  .tag-list > span { font-size: 11px; }
+  .mobile-dialog { padding-left: 20px; padding-right: 20px; }
+  .mobile-dialog nav { font-size: clamp(34px, 11vw, 48px); }
+}
+@media (pointer: coarse) {
+  .slider-thumb { width: 22px; height: 22px; }
+  .play-meta button { min-width: 44px; min-height: 44px; }
 }
 html[data-motion='paused'] { scroll-behavior: auto; }
 html[data-motion='paused'] *, html[data-motion='paused'] *::before, html[data-motion='paused'] *::after { animation-play-state: paused !important; transition-duration: 0s !important; }
