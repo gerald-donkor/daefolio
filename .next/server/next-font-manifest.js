@@ -1,0 +1,1 @@
+self.__NEXT_FONT_MANIFEST='{"pages":{},"app":{"/home/dgk/Projects/next/portfolio-v1/app/layout":["static/media/fedf4c9280b16369-s.p.woff2","static/media/92f9a759eb15589b-s.p.woff2","static/media/235349d9c353e5d7-s.p.woff2","static/media/125b055e8623e92e-s.p.woff2"]},"appUsingSizeAdjust":true,"pagesUsingSizeAdjust":false}';

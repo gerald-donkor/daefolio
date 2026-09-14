@@ -1,0 +1,35 @@
+/* [project]/app/serif_ee56014e.module.css [app-client] (css) */
+@font-face {
+  font-family: "serif";
+  src: url("../media/cormorant_garamond_latin_400_normal-s.p.1fm7t8dmldrtt.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "serif";
+  src: url("../media/cormorant_garamond_latin_400_italic-s.p.1zhb_kb4w2oq1.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: serif Fallback;
+  src: local(Arial);
+  ascent-override: 105.17%;
+  descent-override: 32.67%;
+  line-gap-override: 0.0%;
+  size-adjust: 87.85%;
+}
+
+.serif_ee56014e-module__UG7qmW__className {
+  font-family: "serif", serif Fallback;
+}
+
+.serif_ee56014e-module__UG7qmW__variable {
+  --font-editorial: "serif", "serif Fallback";
+}
+
+/*# sourceMappingURL=app_serif_ee56014e_module_css_1igg3k2._.single.css.map*/

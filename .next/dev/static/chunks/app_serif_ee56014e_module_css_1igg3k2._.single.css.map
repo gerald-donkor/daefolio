@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/app/serif_ee56014e.module.css"],"sourcesContent":["@font-face {\n    \nfont-family: 'serif';\n    src: url('@vercel/turbopack-next/internal/font/local/font?{%22path%22:%22../node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-400-normal.woff2%22,%22preload%22:true,%22has_size_adjust%22:true}') format('woff2');\n    font-display: swap;\n    \nfont-weight: 400;\nfont-style: normal;\n}\n@font-face {\n    \nfont-family: 'serif';\n    src: url('@vercel/turbopack-next/internal/font/local/font?{%22path%22:%22../node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-400-italic.woff2%22,%22preload%22:true,%22has_size_adjust%22:true}') format('woff2');\n    font-display: swap;\n    \nfont-weight: 400;\nfont-style: italic;\n}\n\n@font-face {\n    font-family: 'serif Fallback';\n    src: local(\"Arial\");\n    ascent-override: 105.17%;\ndescent-override: 32.67%;\nline-gap-override: 0.00%;\nsize-adjust: 87.85%;\n\n}\n\n.className {\n    font-family: 'serif', 'serif Fallback';\n    \n}\n.variable {\n    --font-editorial: 'serif', 'serif Fallback';\n}\n\n"],"names":[],"mappings":"AAAA;;;;;;;;AASA;;;;;;;;AAUA;;;;;;;;;AAUA;;;;AAIA"}}]
+}

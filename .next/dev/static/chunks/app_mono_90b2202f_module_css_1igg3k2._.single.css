@@ -1,0 +1,25 @@
+/* [project]/app/mono_90b2202f.module.css [app-client] (css) */
+@font-face {
+  font-family: mono;
+  src: url("../media/geist_mono_latin_wght_normal-s.p.1t7tphccnfzmb.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: mono Fallback;
+  src: local(Arial);
+  ascent-override: 76.43%;
+  descent-override: 22.43%;
+  line-gap-override: 0.0%;
+  size-adjust: 131.49%;
+}
+
+.mono_90b2202f-module__fV1Ssq__className {
+  font-family: mono, mono Fallback;
+}
+
+.mono_90b2202f-module__fV1Ssq__variable {
+  --font-geist-mono: "mono", "mono Fallback";
+}
+
+/*# sourceMappingURL=app_mono_90b2202f_module_css_1igg3k2._.single.css.map*/
