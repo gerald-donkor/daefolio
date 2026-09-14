@@ -25,6 +25,8 @@
 @media(max-height:500px) and (orientation:landscape){.navbar{height:64px}.hero{padding-top:96px;min-height:auto}.identity{margin-top:24px}.work,.about,.playground,.contact{padding-top:56px}}
 @media(prefers-reduced-motion:reduce){.page *, .page *:before,.page *:after{transition:none!important;animation:none!important}}
 
+.page .portrait{display:block;width:100%;max-width:300px;height:auto;aspect-ratio:1;border-radius:6px;margin:0 0 20px}
+
 /* All project imagery shares one buttery hover language; parallax uses transform so hover stays on scale-friendly props. */
 .page :global(.aether-photo),.page :global(.ether-photo){will-change:transform;backface-visibility:hidden}
 .page :global(.studio-photo),.page :global(.job-dashboard-image),.page :global(.pixca-photo){will-change:transform;backface-visibility:hidden}

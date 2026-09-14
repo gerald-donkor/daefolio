@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { ArrowUpRight, ArrowDown, Menu, Copy, Check, Asterisk } from 'lucide-react';
 import { Work } from '@/components/work';
 import { Playground } from '@/components/playground';
@@ -64,7 +65,19 @@ export default function Home() {
         <a className={styles.textLink} href="https://github.com/gerald-donkor" target="_blank" rel="noreferrer">More things I’m building on GitHub <ArrowUpRight size={18} aria-hidden="true" /></a>
       </section>
       <section id="about" tabIndex={-1} className={styles.about}>
-        <div className={styles.aboutSide}><span className={styles.handmark} data-spin aria-hidden="true"><span><Asterisk strokeWidth={1} /></span></span><h2>A little<br />about me.</h2><span>Gerald Donkor<br />Design & development</span></div>
+        <div className={styles.aboutSide}>
+          <h2>A little<br />about me.</h2>
+          <Image
+            className={styles.portrait}
+            src="/gerald-donkor.jpg"
+            alt="Portrait of Gerald Donkor"
+            width={600}
+            height={600}
+            quality={100}
+            unoptimized
+          />
+          <span>Gerald Donkor<br />Design & development</span>
+        </div>
         <div className={styles.aboutContent}><p className={styles.statement}>The interesting part is where design meets code.</p><p>I’m a design engineer based in Ghana. I like being close to the whole thing: figuring out an interface, building it, then tuning the small details that make it feel natural.</p><p>A useful product can have personality. A beautiful website can work beautifully, too. That’s the space I like working in.</p><div className={styles.capabilities}>{[['Interface design', 'Visual direction, prototypes, design systems'], ['Frontend development', 'React, Next.js, TypeScript'], ['Motion & interaction', 'GSAP, creative coding, the details']].map(([title, description]) => <div key={title}><h3>{title}</h3><span>{description}</span></div>)}</div></div>
       </section>
       <section id="playground" tabIndex={-1} className={styles.playground}>
