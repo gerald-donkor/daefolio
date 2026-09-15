@@ -52,9 +52,47 @@ export default function Home() {
     </header>
     <main id="main" tabIndex={-1}>
       <section className={styles.hero} aria-labelledby="hero-title">
+        <div className={styles.heroBackdrop} aria-hidden="true">
+          <picture>
+            <source
+              type="image/webp"
+              srcSet="/images/hero-wireframes-1600.webp 1600w, /images/hero-wireframes-2560.webp 2560w, /images/hero-wireframes-3840.webp 3840w"
+              sizes="(max-width: 860px) 150svh, 100vw"
+            />
+            <Image
+              className={styles.heroPhoto}
+              src="/images/hero-wireframes-2560.webp"
+              alt=""
+              fill
+              sizes="(max-width: 860px) 150svh, 100vw"
+              quality={100}
+              unoptimized
+              loading="eager"
+              fetchPriority="high"
+            />
+          </picture>
+          <div className={styles.heroInterface}>
+            <picture>
+              <source
+                type="image/webp"
+                srcSet="/images/hero-onboarding-960.webp 960w, /images/hero-onboarding-1600.webp 1600w, /images/hero-onboarding-2400.webp 2400w"
+                sizes="(max-width: 600px) 113vw, (max-width: 860px) 92vw, 60vw"
+              />
+              <Image
+                className={styles.heroInterfacePhoto}
+                src="/images/hero-onboarding-1600.webp"
+                alt=""
+                fill
+                sizes="(max-width: 600px) 113vw, (max-width: 860px) 92vw, 60vw"
+                unoptimized
+                loading="eager"
+              />
+            </picture>
+          </div>
+        </div>
         <div className={`${styles.heroPrelude} hero-detail`}><span>Interfaces. Interactions. A little intuition.</span><span>Ghana / Working everywhere</span></div>
         <div className={styles.identity}>
-          <h1 id="hero-title"><span className="hero-line"><span>Gerald</span></span><span className="hero-line"><span>Donkor.</span></span></h1>
+          <h1 id="hero-title"><span className="hero-line"><span>Gerald</span></span><span className="hero-line"><span>Donkor</span></span></h1>
           <div className={`${styles.intro} hero-detail`}><span className={styles.handmark} data-spin aria-hidden="true"><span><Asterisk strokeWidth={1} /></span></span><p>I design the interface.<br />I write the code.<br />I care how it feels.</p><span>Independent design engineer<br />based in Ghana.</span></div>
         </div>
         <div className={`${styles.heroBottom} hero-detail`}><p>A place for the things I make<br />and the details I get lost in.</p><a href="#work" data-magnetic>Explore the work <span className={styles.scrollButton}><ArrowDown size={20} aria-hidden="true" /></span></a></div>

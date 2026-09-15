@@ -42,3 +42,40 @@
 .page :global(.split-line)>div{will-change:transform,filter}
 .identity :global(.hero-line)>span{will-change:transform,filter}
 @media (hover:none),(pointer:coarse){.page :global(.project-hover){left:auto;right:12px;top:auto;bottom:12px;translate:none;opacity:1;scale:1;filter:blur(0);pointer-events:none}}
+
+/* Screen sketches introduce the design process; cover preserves their proportions. */
+.hero{position:relative;isolation:isolate}
+.heroBackdrop{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:var(--night)}
+.heroPhoto{object-fit:cover;object-position:50% 62%}
+/* A broad fade joins the paper sketch to a finished mobile onboarding screen. */
+.heroInterface{position:absolute;inset:0 0 0 40%;mask-image:linear-gradient(90deg,transparent,#000 38%);-webkit-mask-image:linear-gradient(90deg,transparent,#000 38%)}
+.heroInterfacePhoto{object-fit:cover;object-position:50% 46%;filter:saturate(.7)}
+@media(max-width:860px){.heroInterface{inset:4% -18% 0 26%;opacity:.8}.heroInterfacePhoto{object-position:50% 42%}}
+@media(max-width:600px){.heroInterface{inset:5% -28% 12% 15%;opacity:.65;mask-image:linear-gradient(90deg,transparent,#000 48%);-webkit-mask-image:linear-gradient(90deg,transparent,#000 48%)}}
+.heroBackdrop::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--night) 0%,transparent 24%,transparent 66%,var(--night) 100%),linear-gradient(90deg,#101516b8 0%,#1015169e 47%,#101516b8 100%)}
+.heroPrelude,.heroBottom p,.intro>span:last-child{color:#c0cac7}
+/* A paper-toned scrim keeps the wireframes legible beneath the identity. */
+:global([data-theme='light']) .heroBackdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 28%,transparent 64%,var(--night) 100%),linear-gradient(90deg,#e7f3edc9 0%,#e7f3eda8 47%,#e7f3eddb 100%)}
+:global([data-theme='light']) .heroPrelude,:global([data-theme='light']) .heroBottom p,:global([data-theme='light']) .intro>span:last-child{color:var(--ink)}
+@media(max-width:860px){.heroPhoto{object-position:60% 62%}}
+
+/* Color chapters connect the studio, project artwork, and playful experiments. */
+:global([data-theme='light']) .heroPhoto{filter:saturate(.85)}
+:global([data-theme='light']) .identity h1{color:#164e49}
+:global([data-theme='light']) .navContact{background:var(--light);border-color:var(--light);color:#fff}
+:global([data-theme='light']) .navContact:hover{background:#1c514a;border-color:#1c514a}
+:global([data-theme='light']) .work{background:var(--surface-work);padding-bottom:90px;--ink:#24443e;--quiet:#4d635b;--line:#28685f33}
+:global([data-theme='light']) .about{background:var(--surface-about);padding-bottom:90px;--ink:#59382c;--quiet:#685347;--line:#59382c33}
+:global([data-theme='light']) .playground{background:var(--surface-process);--ink:#394b35;--quiet:#56614a;--line:#394b3533}
+:global([data-theme='light']) .work,:global([data-theme='light']) .about,:global([data-theme='light']) .playground{color:var(--ink)}
+:global([data-theme='light']) .sectionHeading h2,:global([data-theme='light']) .aboutSide h2{color:var(--ink)}
+:global([data-theme='light']) .contact{--night:#c7e7df;--ink:#164e49}
+:global([data-theme='light']) .page .footer{background:transparent}
+:global([data-theme='light']) .page :global(.spring-knob){background:#28685f;color:#fff}
+:global([data-theme='light']) .page :global(.piece-two){background:#6eaa91}
+:global([data-theme='light']) .page :global(.piece-three){background:#e68f75}
+@media(max-width:860px){.intro .handmark{width:48px;height:48px}}
+@media(max-width:600px){:global([data-theme='light']) .work,:global([data-theme='light']) .about{padding-bottom:64px}.intro .handmark{width:40px;height:40px}}
+@media(max-width:860px){
+  :global([data-theme='light']) .heroBackdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 28%,#e7f3edb3 62%,var(--night) 100%),linear-gradient(90deg,#e7f3edc9 0%,#e7f3eda8 47%,#e7f3eddb 100%)}
+}
