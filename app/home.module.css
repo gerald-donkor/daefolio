@@ -28,7 +28,6 @@
 @media(max-width:340px){.toolGroup{padding:12px 14px}.toolGroup li{gap:5px;font-size:10.5px}.toolGroup li img{width:17px;height:17px}}
 @media(prefers-reduced-motion:reduce){.page *, .page *:before,.page *:after{transition:none!important;animation:none!important}}
 
-.page .portrait{display:block;width:100%;max-width:300px;height:auto;aspect-ratio:1;object-fit:cover;border-radius:6px;margin:0 0 20px}
 
 /* All project imagery shares one buttery hover language; parallax uses transform so hover stays on scale-friendly props. */
 .page :global(.aether-photo),.page :global(.ether-photo){will-change:transform;backface-visibility:hidden}
@@ -94,4 +93,31 @@
 @media(max-width:600px){:global([data-theme='light']) .work,:global([data-theme='light']) .about{padding-bottom:64px}.intro .handmark{width:40px;height:40px}}
 @media(max-width:860px){
   :global([data-theme='light']) .heroBackdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 24%,rgba(231,243,237,.5) 68%,var(--night) 100%),linear-gradient(90deg,rgba(231,243,237,.55) 0%,rgba(231,243,237,.24) 48%,rgba(231,243,237,.16) 100%)}
+}
+
+.backToTop {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  transition: transform .45s cubic-bezier(.22,1,.36,1), background-color .3s ease, color .3s ease, border-color .3s ease;
+}
+.backToTop svg { transition: transform .45s cubic-bezier(.22,1,.36,1); }
+.backToTop:hover, .backToTop:focus-visible {
+  background: var(--ink);
+  color: var(--night);
+  border-color: var(--ink);
+  transform: translateY(-3px);
+}
+.backToTop:hover svg, .backToTop:focus-visible svg { transform: translateY(-3px); }
+.backToTop:active { transform: scale(.94); }
+:global([data-motion='paused']) .backToTop,
+:global([data-motion='paused']) .backToTop svg { transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .backToTop, .backToTop svg { transition: none; transform: none !important; }
 }

@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { ArrowUpRight, ArrowDown, Menu, Copy, Check, Asterisk } from 'lucide-react';
+import { ArrowUpRight, ArrowUp, ArrowDown, Menu, Copy, Check, Asterisk } from 'lucide-react';
 import { Work } from '@/components/work';
 import { Playground } from '@/components/playground';
 import { AmbientField } from '@/components/ambient-field';
 import { ContactVideo } from '@/components/contact-video';
+import { PortraitReveal } from '@/components/portrait-reveal';
 import { useMotionPreference } from '@/components/motion-provider';
 import { CursorFollower, usePortfolioMotion } from '@/components/portfolio-motion';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from '@/components/ui/dialog';
@@ -59,7 +60,7 @@ export default function Home() {
       </Dialog>
     </header>
     <main id="main" tabIndex={-1}>
-      <section className={styles.hero} aria-labelledby="hero-title">
+      <section data-preferences-hero className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroBackdrop} aria-hidden="true">
           <picture>
             <source
@@ -103,7 +104,15 @@ export default function Home() {
           <h1 id="hero-title"><span className="hero-line"><span>Gerald</span></span><span className="hero-line"><span>Donkor</span></span></h1>
           <div className={`${styles.intro} hero-detail`}><span className={styles.handmark} data-spin aria-hidden="true"><span><Asterisk strokeWidth={1} /></span></span><p>I design the interface.<br />I write the code.<br />I care how it feels.</p><span>Independent design engineer<br />based in Ghana.</span></div>
         </div>
-        <div className={`${styles.heroBottom} hero-detail`}><p>A place for the things I make<br />and the details I get lost in.</p><a href="#work" data-magnetic>Explore the work <span className={styles.scrollButton}><ArrowDown size={20} aria-hidden="true" /></span></a></div>
+        <div className={`${styles.heroBottom} hero-detail`}><p>A place for the things I make<br />and the details I get lost in.</p><a href="#work" onClick={event => {
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          const work = document.getElementById('work');
+          if (!work) return;
+          event.preventDefault();
+          work.focus({ preventScroll: true });
+          work.scrollIntoView({ behavior: paused ? 'instant' : 'smooth', block: 'start' });
+          window.history.replaceState(null, '', '#work');
+        }}>Explore the work <span className={styles.scrollButton}><ArrowDown size={20} aria-hidden="true" /></span></a></div>
       </section>
       <section id="work" tabIndex={-1} className={styles.work}>
         <div className={styles.sectionHeading}><h2>Selected work<span> (5)</span></h2><p>From the first sketch<br />to the last interaction.</p></div>
@@ -113,15 +122,7 @@ export default function Home() {
       <section id="about" tabIndex={-1} className={styles.about}>
         <div className={styles.aboutSide}>
           <h2>A little<br />about me.</h2>
-          <Image
-            className={styles.portrait}
-            src="/gerald-donkor.jpg"
-            alt="Portrait of Gerald Donkor"
-            width={600}
-            height={600}
-            quality={100}
-            unoptimized
-          />
+          <PortraitReveal />
           <span>Gerald Donkor<br />Design & development</span>
         </div>
         <div className={styles.aboutContent}><p className={styles.statement}>The interesting part is where design meets code.</p><p>I’m a design engineer based in Ghana. I like being close to the whole thing: figuring out an interface, building it, then tuning the small details that make it feel natural.</p><p>A useful product can have personality. A beautiful website can work beautifully, too. That’s the space I like working in.</p><div className={styles.capabilities}>{[['Interface design', 'Visual direction, prototypes, design systems'], ['Frontend development', 'React, Next.js, TypeScript'], ['Motion & interaction', 'GSAP, creative coding, the details']].map(([title, description]) => <div key={title}><h3>{title}</h3><span>{description}</span></div>)}</div><div className={styles.toolbox} aria-labelledby="toolbox-title"><div className={styles.toolboxHeading}><h3 id="toolbox-title">The tools behind the work.</h3><p>From first frame to final deploy.</p></div><div className={styles.toolGroups}>{toolGroups.map(group => <div className={styles.toolGroup} key={group.label}><span>{group.label}</span><ul>{group.tools.map(([name, icon]) => <li key={name}><Image src={`/logos/${icon}.svg`} alt="" width={28} height={28} aria-hidden="true" /><span>{name}</span></li>)}</ul></div>)}</div></div></div>
@@ -261,6 +262,18 @@ export default function Home() {
             </a>
           </div>
           <span>© {new Date().getFullYear()}</span>
+          <button
+            type="button"
+            className={styles.backToTop}
+            aria-label="Back to top"
+            title="Back to top"
+            onClick={() => {
+              root.current?.querySelector<HTMLAnchorElement>('header a')?.focus({ preventScroll: true });
+              window.scrollTo({ top: 0, behavior: paused ? 'instant' : 'smooth' });
+            }}
+          >
+            <ArrowUp size={21} strokeWidth={1.5} aria-hidden="true" />
+          </button>
         </footer>
       </section>
     </main>

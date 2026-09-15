@@ -111,6 +111,17 @@ body footer > span, .portfolio footer > span { color: var(--foreground); }
   background: var(--surface); color: var(--foreground);
   box-shadow: 0 4px 24px #0002;
 }
+.display-preferences {
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity .65s ease, transform .65s cubic-bezier(.22,1,.36,1), visibility .65s;
+}
+.display-preferences[data-visible='true'] {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0);
+}
+.display-preferences[data-paused='true'] { transition: none; }
+.display-preferences button { transition: background-color .2s ease, color .2s ease; }
+.display-preferences button:active { transform: scale(.96); }
 .theme-options { display: flex; gap: 2px; }
 .display-preferences button {
   display: flex; align-items: center; justify-content: center; gap: 7px;
