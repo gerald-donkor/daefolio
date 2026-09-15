@@ -61,12 +61,15 @@
 .heroBackdrop::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--night) 0%,transparent 24%,transparent 66%,var(--night) 100%),linear-gradient(90deg,#101516b8 0%,#1015169e 47%,#101516b8 100%)}
 .heroPrelude,.heroBottom p,.intro>span:last-child{color:#c0cac7}
 /* A paper-toned scrim keeps the wireframes legible beneath the identity. */
-:global([data-theme='light']) .heroBackdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 28%,transparent 64%,var(--night) 100%),linear-gradient(90deg,#e7f3edc9 0%,#e7f3eda8 47%,#e7f3eddb 100%)}
+:global([data-theme='light']) .heroBackdrop::after{background:linear-gradient(180deg,var(--night) 0%,rgba(231,243,237,.20) 14%,transparent 26%,transparent 72%,rgba(231,243,237,.45) 90%,var(--night) 100%),linear-gradient(90deg,rgba(231,243,237,.45) 0%,rgba(231,243,237,.18) 36%,rgba(231,243,237,.12) 55%,rgba(231,243,237,.55) 75%,rgba(231,243,237,.70) 100%)}
 :global([data-theme='light']) .heroPrelude,:global([data-theme='light']) .heroBottom p,:global([data-theme='light']) .intro>span:last-child{color:var(--ink)}
+:global([data-theme='light']) .intro p{color:#164e49}
+:global([data-theme='light']) .handmark{color:#164e49}
 @media(max-width:860px){.heroPhoto{object-position:60% 62%}}
 
 /* Color chapters connect the studio, project artwork, and playful experiments. */
-:global([data-theme='light']) .heroPhoto{filter:saturate(.85)}
+:global([data-theme='light']) .heroPhoto{filter:contrast(1.1) saturate(1.08) brightness(.98)}
+:global([data-theme='light']) .heroInterfacePhoto{filter:contrast(1.08) saturate(1.15) brightness(1.08)}
 :global([data-theme='light']) .identity h1{color:#164e49}
 :global([data-theme='light']) .navContact{background:var(--light);border-color:var(--light);color:#fff}
 :global([data-theme='light']) .navContact:hover{background:#1c514a;border-color:#1c514a}
@@ -83,5 +86,5 @@
 @media(max-width:860px){.intro .handmark{width:48px;height:48px}}
 @media(max-width:600px){:global([data-theme='light']) .work,:global([data-theme='light']) .about{padding-bottom:64px}.intro .handmark{width:40px;height:40px}}
 @media(max-width:860px){
-  :global([data-theme='light']) .heroBackdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 28%,#e7f3edb3 62%,var(--night) 100%),linear-gradient(90deg,#e7f3edc9 0%,#e7f3eda8 47%,#e7f3eddb 100%)}
+  :global([data-theme='light']) .heroBackdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 24%,rgba(231,243,237,.5) 68%,var(--night) 100%),linear-gradient(90deg,rgba(231,243,237,.55) 0%,rgba(231,243,237,.24) 48%,rgba(231,243,237,.16) 100%)}
 }
