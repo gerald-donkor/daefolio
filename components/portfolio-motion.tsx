@@ -147,7 +147,7 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>) {
 
       // — Quiet supporting reveals, all sharing the same expo + blur language.
       root.current!.querySelectorAll<HTMLElement>(
-        '[class*="aboutContent"] > p, [class*="capabilities"] > div, .play-card, [class*="sectionHeading"] p, [class*="heroPrelude"], [class*="heroBottom"], [class*="contactPrelude"], [class*="emailRow"], [class*="footer"]',
+        '[class*="aboutContent"] > p, [class*="capabilities"] > div, .play-card, [class*="sectionHeading"] p, [class*="heroPrelude"], [class*="heroBottom"], [class*="contactPrelude"], [class*="emailRow"], [class*="contactCard"], [class*="footer"]',
       ).forEach((el) => {
         gsap.from(el, {
           y: 28,
@@ -180,25 +180,37 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>) {
         splits.forEach((s) => { try { s.revert(); } catch { /* split already reverted */ } });
       };
     });
-    mm.add('(pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
       const spinCleanups = Array.from(root.current!.querySelectorAll<HTMLElement>('[data-spin]')).map(element => {
-        const spin = gsap.to(element.firstElementChild, { rotation: 360, duration: 0.9, repeat: -1, ease: 'none', paused: true });
-        spin.timeScale(0);
-        const acceleration = gsap.to(spin, { timeScale: 1, duration: 0.6, ease: 'expo.inOut', paused: true, onReverseComplete: () => { spin.pause(); } });
-        const enter = () => { spin.play(); acceleration.play(); };
-        const leave = () => { acceleration.reverse(); };
-        const hide = () => { if (document.hidden) { acceleration.pause(0); spin.pause(); } };
+        const spin = gsap.to(element.firstElementChild, { rotation: 360, duration: 6, repeat: -1, ease: 'none' });
+        const slowdown = gsap.to(spin, { timeScale: 0.2, duration: 0.8, ease: 'power2.inOut', paused: true });
+        const enter = (event: PointerEvent) => { if (event.pointerType !== 'touch') slowdown.play(); };
+        const leave = () => { slowdown.reverse(); };
+        const visibility = () => {
+          if (document.hidden) {
+            spin.pause();
+            slowdown.pause(0);
+          } else {
+            spin.play();
+          }
+        };
+        visibility();
         element.addEventListener('pointerenter', enter);
         element.addEventListener('pointerleave', leave);
+        element.addEventListener('pointercancel', leave);
         window.addEventListener('blur', leave);
-        document.addEventListener('visibilitychange', hide);
+        document.addEventListener('visibilitychange', visibility);
         return () => {
           element.removeEventListener('pointerenter', enter);
           element.removeEventListener('pointerleave', leave);
+          element.removeEventListener('pointercancel', leave);
           window.removeEventListener('blur', leave);
-          document.removeEventListener('visibilitychange', hide);
+          document.removeEventListener('visibilitychange', visibility);
         };
       });
+      return () => spinCleanups.forEach(cleanup => cleanup());
+    });
+    mm.add('(pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
       const cleanups = Array.from(root.current!.querySelectorAll<HTMLElement>('[data-magnetic]')).map(element => {
         const xTo = gsap.quickTo(element, 'x', { duration: 0.6, ease: 'expo.out' });
         const yTo = gsap.quickTo(element, 'y', { duration: 0.6, ease: 'expo.out' });
@@ -226,7 +238,7 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>) {
         preview.addEventListener('pointerleave', leave);
         return () => { preview.removeEventListener('pointermove', move); preview.removeEventListener('pointerleave', leave); };
       });
-      return () => [...spinCleanups, ...cleanups, ...hoverCleanups].forEach(cleanup => cleanup());
+      return () => [...cleanups, ...hoverCleanups].forEach(cleanup => cleanup());
     });
     return () => mm.revert();
   }, { scope: root, dependencies: [paused], revertOnUpdate: true });
