@@ -10,8 +10,8 @@
   --text-on-light: #171817;
   --text-muted-dark: #a6aaac;
   --text-muted-light: #66635f;
-  --lavender: #b8afe2;
-  --lavender-soft: #d9d2ed;
+  --lavender: #9dcfc1;
+  --lavender-soft: #c0ded2;
   --coral: #f28e6f;
   --signal: #72d978;
   --line-dark: #303438;
@@ -180,7 +180,7 @@ button, a, [tabindex] { touch-action: manipulation; }
 .ui-button-primary:hover { background: var(--paper-soft); }
 .ui-button-outline { background: transparent; color: inherit; border: 1px solid var(--border); }
 .ui-button-outline:hover { background: var(--lavender-soft); color: var(--ink); }
-.ui-button-ghost { background: transparent; color: inherit; border: 1px solid transparent; }.ui-button-ghost:hover { background: #b8afe21a; }
+.ui-button-ghost { background: transparent; color: inherit; border: 1px solid transparent; }.ui-button-ghost:hover { background: #9dcfc11a; }
 .ui-button-default { min-height: 48px; padding-inline: 24px; }.ui-button-icon { width: 44px; height: 44px; }.ui-button-sm { min-height: 44px; padding-inline: 16px; }
 .slider-root { position: relative; display: flex; align-items: center; width: 100%; min-height: 44px; touch-action: none; user-select: none; }
 .slider-track { position: relative; height: 2px; flex-grow: 1; background: var(--line-dark); overflow: hidden; }

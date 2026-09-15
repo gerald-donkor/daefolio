@@ -14,7 +14,7 @@ const colors = [
   { name: 'Paper', value: '#F7F4F0', className: styles.paper },
   { name: 'Stone', value: '#AAA397', className: styles.stone },
   { name: 'Mocha', value: '#55463F', className: styles.mocha },
-  { name: 'Lavender', value: '#B8AFE2', className: styles.lavender },
+  { name: 'Sea glass', value: '#9DCFC1', className: styles.lavender },
   { name: 'Coral', value: '#F28E6F', className: styles.coral },
 ];
 

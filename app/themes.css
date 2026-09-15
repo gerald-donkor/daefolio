@@ -2,20 +2,20 @@
    Brand primitives and project artwork retain their original colors. */
 :root {
   color-scheme: light;
-  --surface: #f7f4f0;
-  --surface-deep: #e9e3da;
-  --surface-work: #eeebe6;
-  --surface-about: #d7cfc2;
-  --surface-process: #e3dcd2;
-  --surface-footer: #d2c5b8;
-  --surface-hover: #e6e0ed;
-  --foreground: #242125;
-  --muted: #58525a;
-  --border: #c7bfc3;
-  --accent: #6c558e;
-  --action-ink: #954a33;
-  --control-fill: #d9d2ed;
-  --control-ink: #30283f;
+  --surface: #e7f3ed;
+  --surface-deep: #c7e7df;
+  --surface-work: #dfe9df;
+  --surface-about: #f5d9c5;
+  --surface-process: #f7edbd;
+  --surface-footer: #c7e7df;
+  --surface-hover: #c2dacf;
+  --foreground: #203c3b;
+  --muted: #495c60;
+  --border: #a5b9b4;
+  --accent: #28685f;
+  --action-ink: #a13e32;
+  --control-fill: #bfdbcf;
+  --control-ink: #24443e;
   --background: var(--surface);
   --atmosphere-display: none;
 }
@@ -26,18 +26,18 @@
   color-scheme: dark;
   --surface: #101215;
   --surface-deep: #080a0c;
-  --surface-work: #1d1b20;
+  --surface-work: #1b211f;
   --surface-about: #302b29;
   --surface-process: #252220;
   --surface-footer: #3d322d;
-  --surface-hover: #292530;
+  --surface-hover: #24352f;
   --foreground: #f5f2ee;
-  --muted: #b5aeb5;
-  --border: #514951;
-  --accent: #b8afe2;
+  --muted: #aebbb5;
+  --border: #46564f;
+  --accent: #9dcfc1;
   --action-ink: #f28e6f;
-  --control-fill: #d9d2ed;
-  --control-ink: #30283f;
+  --control-fill: #c0ded2;
+  --control-ink: #203e36;
   --atmosphere-display: block;
 }
 

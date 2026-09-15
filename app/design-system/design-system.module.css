@@ -305,7 +305,7 @@
 /* Preview the live theme while the palette swatches remain brand references. */
 .ink { background: #101215; }.paper { background: #f7f4f0; }
 .stone { background: #aaa397; }.mocha { background: #55463f; }
-.lavender { background: #b8afe2; }.coral { background: #f28e6f; }
+.lavender { background: #9dcfc1; }.coral { background: #f28e6f; }
 .stars, .glow { display: var(--atmosphere-display); }
 .hero h1, .serifSpecimen, .interlude h2, .callout h3, .contact > h2 { font-family: var(--font-serif); }
 .note, .artifactLavender { background: var(--control-fill); color: var(--control-ink); }

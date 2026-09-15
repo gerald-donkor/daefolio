@@ -75,7 +75,7 @@ export function AmbientField() {
           const count = Math.min(7, Math.ceil(distance / 9));
           for (let i = 0; i < count; i++) {
             const fraction = i / count;
-            wisps.push({ x: previous.x + dx * fraction, y: previous.y + dy * fraction, vx: -dx * 1.8 + dy * .4, vy: -dy * 1.8 - dx * .4, age: 0, life: .65 + Math.random() * .6, size: 18 + Math.min(distance * .3, 22), hue: 180 + (Math.sin(elapsed * .7) + 1) * 52, spin: 2.4 });
+            wisps.push({ x: previous.x + dx * fraction, y: previous.y + dy * fraction, vx: -dx * 1.8 + dy * .4, vy: -dy * 1.8 - dx * .4, age: 0, life: .65 + Math.random() * .6, size: 18 + Math.min(distance * .3, 22), hue: 145 + (Math.sin(elapsed * .7) + 1) * 12, spin: 2.4 });
           }
           if (wisps.length > 160) wisps.splice(0, wisps.length - 160);
         }
@@ -86,7 +86,7 @@ export function AmbientField() {
       if (paused || !fine.matches || event.pointerType === 'touch') return;
       for (let i = 0; i < 14; i++) {
         const angle = i / 14 * Math.PI * 2;
-        wisps.push({ x: event.clientX, y: event.clientY, vx: Math.cos(angle) * 80, vy: Math.sin(angle) * 80, age: 0, life: .7, size: 22, hue: 235 + i * 3, spin: 1.2 });
+        wisps.push({ x: event.clientX, y: event.clientY, vx: Math.cos(angle) * 80, vy: Math.sin(angle) * 80, age: 0, life: .7, size: 22, hue: 150 + i * 3, spin: 1.2 });
       }
       if (wisps.length > 160) wisps.splice(0, wisps.length - 160);
     };
