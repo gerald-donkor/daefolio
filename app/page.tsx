@@ -139,49 +139,45 @@ export default function Home() {
           <div className={`${styles.contactCard} ${styles.contactCardGmail}`}>
             <a
               href="mailto:geralddonkor1@gmail.com"
-              className={styles.cardMainAction}
+              className={styles.cardLink}
               data-cursor="link"
             >
-              <div className={styles.cardLogo}>
+              <span className={styles.cardIcon}>
                 <GmailIcon />
-              </div>
-              <div className={styles.cardInfo}>
-                <div className={styles.cardHeader}>
-                  <span className={styles.cardPlatform}>Email</span>
-                  <span className={styles.cardBadge}>Direct</span>
-                </div>
+              </span>
+              <div className={styles.cardDetails}>
+                <span className={styles.cardPlatform}>Email</span>
                 <span className={styles.cardHandle}>geralddonkor1@gmail.com</span>
-                <span className={styles.cardDesc}>Say hello or discuss a collaboration</span>
               </div>
             </a>
-            <div className={styles.cardControls}>
-              <a
-                href="mailto:geralddonkor1@gmail.com"
-                className={styles.cardIconBtn}
-                aria-label="Send email to geralddonkor1@gmail.com"
-                title="Send email"
-                data-magnetic
-              >
-                <ArrowUpRight size={17} aria-hidden="true" />
-              </a>
+            <div className={styles.cardActions}>
               <button
                 type="button"
                 onClick={copyEmail}
-                className={`${styles.cardIconBtn} ${copyStatus ? styles.copied : ''}`}
+                className={`${styles.cardActionBtn} ${copyStatus ? styles.copied : ''}`}
                 aria-label="Copy email address"
                 title={copyStatus ? 'Email copied' : 'Copy email address'}
                 data-magnetic
               >
                 {copyStatus === 'Email copied' ? (
-                  <Check size={16} aria-hidden="true" />
+                  <Check size={14} aria-hidden="true" />
                 ) : (
-                  <Copy size={16} aria-hidden="true" />
+                  <Copy size={14} aria-hidden="true" />
                 )}
               </button>
+              <a
+                href="mailto:geralddonkor1@gmail.com"
+                className={styles.cardActionBtn}
+                aria-label="Send email to geralddonkor1@gmail.com"
+                title="Send email"
+                data-magnetic
+              >
+                <ArrowUpRight size={14} aria-hidden="true" />
+              </a>
             </div>
             {copyStatus && (
               <span className={styles.copyToast} role="status">
-                <Check size={12} aria-hidden="true" /> {copyStatus}
+                <Check size={11} aria-hidden="true" /> Copied
               </span>
             )}
           </div>
@@ -194,24 +190,16 @@ export default function Home() {
             className={`${styles.contactCard} ${styles.contactCardGithub}`}
             data-cursor="link"
           >
-            <div className={styles.cardMainAction}>
-              <div className={styles.cardLogo}>
-                <GithubIcon />
-              </div>
-              <div className={styles.cardInfo}>
-                <div className={styles.cardHeader}>
-                  <span className={styles.cardPlatform}>GitHub</span>
-                  <span className={styles.cardBadge}>Code &amp; Labs</span>
-                </div>
-                <span className={styles.cardHandle}>gerald-donkor</span>
-                <span className={styles.cardDesc}>Repositories, experiments &amp; source code</span>
-              </div>
+            <span className={styles.cardIcon}>
+              <GithubIcon />
+            </span>
+            <div className={styles.cardDetails}>
+              <span className={styles.cardPlatform}>GitHub</span>
+              <span className={styles.cardHandle}>gerald-donkor</span>
             </div>
-            <div className={styles.cardControls}>
-              <span className={styles.cardIconBtn} aria-hidden="true" data-magnetic>
-                <ArrowUpRight size={17} />
-              </span>
-            </div>
+            <span className={styles.cardActionIcon} aria-hidden="true">
+              <ArrowUpRight size={15} />
+            </span>
           </a>
 
           {/* LinkedIn Card */}
@@ -222,24 +210,16 @@ export default function Home() {
             className={`${styles.contactCard} ${styles.contactCardLinkedin}`}
             data-cursor="link"
           >
-            <div className={styles.cardMainAction}>
-              <div className={styles.cardLogo}>
-                <LinkedinIcon />
-              </div>
-              <div className={styles.cardInfo}>
-                <div className={styles.cardHeader}>
-                  <span className={styles.cardPlatform}>LinkedIn</span>
-                  <span className={styles.cardBadge}>Network</span>
-                </div>
-                <span className={styles.cardHandle}>Gerald Donkor</span>
-                <span className={styles.cardDesc}>Professional experience &amp; connections</span>
-              </div>
+            <span className={styles.cardIcon}>
+              <LinkedinIcon />
+            </span>
+            <div className={styles.cardDetails}>
+              <span className={styles.cardPlatform}>LinkedIn</span>
+              <span className={styles.cardHandle}>Gerald Donkor</span>
             </div>
-            <div className={styles.cardControls}>
-              <span className={styles.cardIconBtn} aria-hidden="true" data-magnetic>
-                <ArrowUpRight size={17} />
-              </span>
-            </div>
+            <span className={styles.cardActionIcon} aria-hidden="true">
+              <ArrowUpRight size={15} />
+            </span>
           </a>
 
           {/* X / Twitter Card */}
@@ -250,24 +230,16 @@ export default function Home() {
             className={`${styles.contactCard} ${styles.contactCardX}`}
             data-cursor="link"
           >
-            <div className={styles.cardMainAction}>
-              <div className={styles.cardLogo}>
-                <XIcon />
-              </div>
-              <div className={styles.cardInfo}>
-                <div className={styles.cardHeader}>
-                  <span className={styles.cardPlatform}>X</span>
-                  <span className={styles.cardBadge}>WIP &amp; Thoughts</span>
-                </div>
-                <span className={styles.cardHandle}>@gerald_daedalus</span>
-                <span className={styles.cardDesc}>Design engineering, prototypes &amp; notes</span>
-              </div>
+            <span className={styles.cardIcon}>
+              <XIcon />
+            </span>
+            <div className={styles.cardDetails}>
+              <span className={styles.cardPlatform}>X</span>
+              <span className={styles.cardHandle}>@gerald_daedalus</span>
             </div>
-            <div className={styles.cardControls}>
-              <span className={styles.cardIconBtn} aria-hidden="true" data-magnetic>
-                <ArrowUpRight size={17} />
-              </span>
-            </div>
+            <span className={styles.cardActionIcon} aria-hidden="true">
+              <ArrowUpRight size={15} />
+            </span>
           </a>
         </div>
 
