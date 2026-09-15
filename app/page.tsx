@@ -6,9 +6,11 @@ import { ArrowUpRight, ArrowDown, Menu, Copy, Check, Asterisk } from 'lucide-rea
 import { Work } from '@/components/work';
 import { Playground } from '@/components/playground';
 import { AmbientField } from '@/components/ambient-field';
+import { ContactVideo } from '@/components/contact-video';
 import { useMotionPreference } from '@/components/motion-provider';
 import { CursorFollower, usePortfolioMotion } from '@/components/portfolio-motion';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from '@/components/ui/dialog';
+import { GmailIcon, LinkedinIcon, GithubIcon, XIcon } from '@/components/contact-icons';
 import styles from './home.module.css';
 
 const toolGroups = [
@@ -129,10 +131,165 @@ export default function Home() {
         <Playground />
       </section>
       <section id="contact" tabIndex={-1} className={styles.contact}>
+        <ContactVideo />
         <div className={styles.contactPrelude}><span>Have something in mind?</span><span>Good things start with a conversation.</span></div>
         <a className={styles.contactTitle} href="mailto:geralddonkor1@gmail.com" data-cursor="link">Let’s make<br />it happen.<ArrowUpRight aria-hidden="true" /></a>
-        <div className={styles.emailRow}><a href="mailto:geralddonkor1@gmail.com">geralddonkor1@gmail.com</a><button onClick={copyEmail} aria-label="Copy email address">{copyStatus === 'Email copied' ? <Check size={18} /> : <Copy size={18} />}</button><span role="status">{copyStatus}</span></div>
-        <footer className={styles.footer}><a href="#main">Gerald Donkor</a><span>From Ghana, with care.</span><div><a href="https://github.com/gerald-donkor" target="_blank" rel="noreferrer">GitHub</a><a href="https://www.linkedin.com/in/gerald-donkor-46814a379" target="_blank" rel="noreferrer">LinkedIn</a><a href="https://x.com/gerald_daedalus" target="_blank" rel="noreferrer">X</a></div><span>© {new Date().getFullYear()}</span></footer>
+        <div className={styles.contactChannels} aria-label="Contact channels and social profiles">
+          {/* Email Card */}
+          <div className={`${styles.contactCard} ${styles.contactCardGmail}`}>
+            <a
+              href="mailto:geralddonkor1@gmail.com"
+              className={styles.cardMainAction}
+              data-cursor="link"
+            >
+              <div className={styles.cardLogo}>
+                <GmailIcon />
+              </div>
+              <div className={styles.cardInfo}>
+                <div className={styles.cardHeader}>
+                  <span className={styles.cardPlatform}>Email</span>
+                  <span className={styles.cardBadge}>Direct</span>
+                </div>
+                <span className={styles.cardHandle}>geralddonkor1@gmail.com</span>
+                <span className={styles.cardDesc}>Say hello or discuss a collaboration</span>
+              </div>
+            </a>
+            <div className={styles.cardControls}>
+              <a
+                href="mailto:geralddonkor1@gmail.com"
+                className={styles.cardIconBtn}
+                aria-label="Send email to geralddonkor1@gmail.com"
+                title="Send email"
+                data-magnetic
+              >
+                <ArrowUpRight size={17} aria-hidden="true" />
+              </a>
+              <button
+                type="button"
+                onClick={copyEmail}
+                className={`${styles.cardIconBtn} ${copyStatus ? styles.copied : ''}`}
+                aria-label="Copy email address"
+                title={copyStatus ? 'Email copied' : 'Copy email address'}
+                data-magnetic
+              >
+                {copyStatus === 'Email copied' ? (
+                  <Check size={16} aria-hidden="true" />
+                ) : (
+                  <Copy size={16} aria-hidden="true" />
+                )}
+              </button>
+            </div>
+            {copyStatus && (
+              <span className={styles.copyToast} role="status">
+                <Check size={12} aria-hidden="true" /> {copyStatus}
+              </span>
+            )}
+          </div>
+
+          {/* GitHub Card */}
+          <a
+            href="https://github.com/gerald-donkor"
+            target="_blank"
+            rel="noreferrer"
+            className={`${styles.contactCard} ${styles.contactCardGithub}`}
+            data-cursor="link"
+          >
+            <div className={styles.cardMainAction}>
+              <div className={styles.cardLogo}>
+                <GithubIcon />
+              </div>
+              <div className={styles.cardInfo}>
+                <div className={styles.cardHeader}>
+                  <span className={styles.cardPlatform}>GitHub</span>
+                  <span className={styles.cardBadge}>Code &amp; Labs</span>
+                </div>
+                <span className={styles.cardHandle}>gerald-donkor</span>
+                <span className={styles.cardDesc}>Repositories, experiments &amp; source code</span>
+              </div>
+            </div>
+            <div className={styles.cardControls}>
+              <span className={styles.cardIconBtn} aria-hidden="true" data-magnetic>
+                <ArrowUpRight size={17} />
+              </span>
+            </div>
+          </a>
+
+          {/* LinkedIn Card */}
+          <a
+            href="https://www.linkedin.com/in/gerald-donkor-46814a379"
+            target="_blank"
+            rel="noreferrer"
+            className={`${styles.contactCard} ${styles.contactCardLinkedin}`}
+            data-cursor="link"
+          >
+            <div className={styles.cardMainAction}>
+              <div className={styles.cardLogo}>
+                <LinkedinIcon />
+              </div>
+              <div className={styles.cardInfo}>
+                <div className={styles.cardHeader}>
+                  <span className={styles.cardPlatform}>LinkedIn</span>
+                  <span className={styles.cardBadge}>Network</span>
+                </div>
+                <span className={styles.cardHandle}>Gerald Donkor</span>
+                <span className={styles.cardDesc}>Professional experience &amp; connections</span>
+              </div>
+            </div>
+            <div className={styles.cardControls}>
+              <span className={styles.cardIconBtn} aria-hidden="true" data-magnetic>
+                <ArrowUpRight size={17} />
+              </span>
+            </div>
+          </a>
+
+          {/* X / Twitter Card */}
+          <a
+            href="https://x.com/gerald_daedalus"
+            target="_blank"
+            rel="noreferrer"
+            className={`${styles.contactCard} ${styles.contactCardX}`}
+            data-cursor="link"
+          >
+            <div className={styles.cardMainAction}>
+              <div className={styles.cardLogo}>
+                <XIcon />
+              </div>
+              <div className={styles.cardInfo}>
+                <div className={styles.cardHeader}>
+                  <span className={styles.cardPlatform}>X</span>
+                  <span className={styles.cardBadge}>WIP &amp; Thoughts</span>
+                </div>
+                <span className={styles.cardHandle}>@gerald_daedalus</span>
+                <span className={styles.cardDesc}>Design engineering, prototypes &amp; notes</span>
+              </div>
+            </div>
+            <div className={styles.cardControls}>
+              <span className={styles.cardIconBtn} aria-hidden="true" data-magnetic>
+                <ArrowUpRight size={17} />
+              </span>
+            </div>
+          </a>
+        </div>
+
+        <footer className={styles.footer}>
+          <a href="#main">Gerald Donkor</a>
+          <span>From Ghana, with care.</span>
+          <div className={styles.footerLinks}>
+            <a href="https://github.com/gerald-donkor" target="_blank" rel="noreferrer">
+              <GithubIcon className={styles.footerIcon} />
+              <span>GitHub</span>
+            </a>
+            <a href="https://www.linkedin.com/in/gerald-donkor-46814a379" target="_blank" rel="noreferrer">
+              <LinkedinIcon className={styles.footerIcon} />
+              <span>LinkedIn</span>
+            </a>
+            <a href="https://x.com/gerald_daedalus" target="_blank" rel="noreferrer">
+              <XIcon className={styles.footerIcon} />
+              <span>X</span>
+            </a>
+          </div>
+          <span>© {new Date().getFullYear()}</span>
+        </footer>
       </section>
     </main>
   </div>;
