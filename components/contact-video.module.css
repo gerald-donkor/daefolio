@@ -5,6 +5,7 @@
 .video[data-playing='true']{opacity:1}
 .backdrop::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--night) 0%,transparent 25%,transparent 70%,var(--night) 100%),linear-gradient(90deg,#101516d9 0%,#101516a8 43%,#10151633 100%)}
 /* Keep the tablet and drawing hand visible beside the contact invitation. */
-:global([data-theme='light']) .backdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 25%,transparent 70%,var(--night) 100%),linear-gradient(90deg,#c7e7dfc9 0%,#c7e7df99 43%,#c7e7df33 100%)}
-@media(max-width:640px){.backdrop{left:0;mask-image:none}.media{object-position:50% 65%}.backdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 22%,transparent 64%,var(--night) 100%),linear-gradient(90deg,#101516c9,#10151680)}:global([data-theme='light']) .backdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 22%,transparent 64%,var(--night) 100%),linear-gradient(90deg,#c7e7dfeb,#c7e7dfb3)}}
+:global([data-theme='light']) .media{filter:contrast(1.15) saturate(1.22) brightness(.97)}
+:global([data-theme='light']) .backdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 20%,transparent 72%,var(--night) 100%),linear-gradient(90deg,rgba(199,231,223,.68) 0%,rgba(199,231,223,.24) 38%,rgba(199,231,223,.04) 75%,transparent 100%)}
+@media(max-width:640px){.backdrop{left:0;mask-image:none}.media{object-position:50% 65%}.backdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 22%,transparent 64%,var(--night) 100%),linear-gradient(90deg,#101516c9,#10151680)}:global([data-theme='light']) .backdrop::after{background:linear-gradient(180deg,var(--night) 0%,transparent 18%,transparent 68%,var(--night) 100%),linear-gradient(90deg,rgba(199,231,223,.72) 0%,rgba(199,231,223,.38) 48%,rgba(199,231,223,.15) 100%)}}
 @media(prefers-reduced-motion:reduce){.video{transition:none}}
