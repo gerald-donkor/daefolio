@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { Flip } from 'gsap/Flip';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Asterisk, RotateCcw, ArrowUpRight, MousePointer2 } from 'lucide-react';
+import { Asterisk, RotateCcw, ArrowUpRight, ArrowLeftRight, MousePointer2 } from 'lucide-react';
 import { Slider } from './ui/slider';
 import { Button } from './ui/button';
 import { useMotionPreference } from './motion-provider';
@@ -15,7 +15,7 @@ export function Playground() {
   const kinetic = useRef<gsap.core.Timeline | null>(null);
   const flipState = useRef<ReturnType<typeof Flip.getState> | null>(null);
   const flipTween = useRef<gsap.core.Timeline | null>(null);
-  const { paused, ready } = useMotionPreference();
+  const { paused } = useMotionPreference();
   const [speed, setSpeed] = useState([55]);
   const [spring, setSpring] = useState(false);
   const [layout, setLayout] = useState(false);
@@ -56,17 +56,17 @@ export function Playground() {
   });
 
   return <div ref={root} className="play-grid">
-    <div className="play-card"><div className="play-meta"><span>001 / KINETIC TYPE</span><button onClick={() => { if (!paused) kinetic.current?.restart(); }} aria-label="Replay kinetic type" aria-disabled={paused} disabled={ready && paused}><RotateCcw size={16} /></button></div>
+    <div className="play-card"><div className="play-meta"><span>001 / KINETIC TYPE</span><span className="play-marker" aria-hidden="true"><RotateCcw size={16} /></span></div>
       <div className="kinetic-stage" role="img" aria-label="The word FEEL, animated at your chosen tempo">{'FEEL'.split('').map((letter, i) => <span key={i} aria-hidden="true">{letter}</span>)}</div>
       <div className="play-control"><label id="tempo-label">Tempo</label><Slider aria-labelledby="tempo-label" value={speed} min={0} max={100} step={1} onValueChange={setSpeed} /><span>{speed[0]}%</span></div>
       <div className="play-caption"><h3>Type with a pulse</h3><p>Find your own rhythm. Adjust the tempo.</p></div>
     </div>
-    <div className="play-card"><div className="play-meta"><span>002 / SPRING PHYSICS</span><MousePointer2 size={16} /></div>
+    <div className="play-card"><div className="play-meta"><span>002 / SPRING PHYSICS</span><span className="play-marker" aria-hidden="true"><MousePointer2 size={16} /></span></div>
       <div className="spring-stage"><div className="spring-track" /><button aria-label="Toggle spring position" aria-pressed={spring} className="spring-knob" onClick={() => setSpring(value => !value)}><Asterisk size={42} strokeWidth={1.2} /></button></div>
       <Button variant="outline" size="sm" className="play-trigger" onClick={() => setSpring(value => !value)}>Give it a nudge <ArrowUpRight size={14} /></Button>
       <div className="play-caption"><h3>A satisfying little spring</h3><p>Click the shape. Watch it find its balance.</p></div>
     </div>
-    <div className="play-card"><div className="play-meta"><span>003 / FLUID LAYOUT</span><span>↔</span></div>
+    <div className="play-card"><div className="play-meta"><span>003 / FLUID LAYOUT</span><span className="play-marker" aria-hidden="true"><ArrowLeftRight size={16} /></span></div>
       <div className={'layout-stage ' + (layout ? 'layout-alternate' : '')} aria-hidden="true"><div className="layout-piece piece-one" /><div className="layout-piece piece-two" /><div className="layout-piece piece-three" /></div>
       <Button variant="outline" size="sm" className="play-trigger" onClick={changeLayout} aria-pressed={layout}>Change perspective <ArrowUpRight size={14} /></Button>
       <div className="play-caption"><h3>Same pieces. New possibilities.</h3><p>A small study in seamless state changes.</p></div>
