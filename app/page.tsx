@@ -11,6 +11,12 @@ import { CursorFollower, usePortfolioMotion } from '@/components/portfolio-motio
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from '@/components/ui/dialog';
 import styles from './home.module.css';
 
+const toolGroups = [
+  { label: 'Design', tools: [['Figma', 'figma'], ['Framer', 'framer'], ['Spline', 'spline']] },
+  { label: 'Build', tools: [['React', 'react'], ['Next.js', 'nextdotjs'], ['TypeScript', 'typescript']] },
+  { label: 'Motion & ship', tools: [['GSAP', 'greensock'], ['GitHub', 'github'], ['Vercel', 'vercel']] },
+] as const;
+
 export default function Home() {
   const root = useRef<HTMLDivElement>(null);
   const { paused } = useMotionPreference();
@@ -116,7 +122,7 @@ export default function Home() {
           />
           <span>Gerald Donkor<br />Design & development</span>
         </div>
-        <div className={styles.aboutContent}><p className={styles.statement}>The interesting part is where design meets code.</p><p>I’m a design engineer based in Ghana. I like being close to the whole thing: figuring out an interface, building it, then tuning the small details that make it feel natural.</p><p>A useful product can have personality. A beautiful website can work beautifully, too. That’s the space I like working in.</p><div className={styles.capabilities}>{[['Interface design', 'Visual direction, prototypes, design systems'], ['Frontend development', 'React, Next.js, TypeScript'], ['Motion & interaction', 'GSAP, creative coding, the details']].map(([title, description]) => <div key={title}><h3>{title}</h3><span>{description}</span></div>)}</div></div>
+        <div className={styles.aboutContent}><p className={styles.statement}>The interesting part is where design meets code.</p><p>I’m a design engineer based in Ghana. I like being close to the whole thing: figuring out an interface, building it, then tuning the small details that make it feel natural.</p><p>A useful product can have personality. A beautiful website can work beautifully, too. That’s the space I like working in.</p><div className={styles.capabilities}>{[['Interface design', 'Visual direction, prototypes, design systems'], ['Frontend development', 'React, Next.js, TypeScript'], ['Motion & interaction', 'GSAP, creative coding, the details']].map(([title, description]) => <div key={title}><h3>{title}</h3><span>{description}</span></div>)}</div><div className={styles.toolbox} aria-labelledby="toolbox-title"><div className={styles.toolboxHeading}><h3 id="toolbox-title">The tools behind the work.</h3><p>From first frame to final deploy.</p></div><div className={styles.toolGroups}>{toolGroups.map(group => <div className={styles.toolGroup} key={group.label}><span>{group.label}</span><ul>{group.tools.map(([name, icon]) => <li key={name}><Image src={`/logos/${icon}.svg`} alt="" width={28} height={28} aria-hidden="true" /><span>{name}</span></li>)}</ul></div>)}</div></div></div>
       </section>
       <section id="playground" tabIndex={-1} className={styles.playground}>
         <div className={styles.sectionHeading}><h2>Made out of curiosity.</h2><p>A few small experiments.<br />Go on, play with them.</p></div>

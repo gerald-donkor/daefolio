@@ -23,9 +23,11 @@
 @media(max-width:480px){.hero{padding-left:5%;padding-right:5%}.work,.about,.playground,.contact{padding-left:5%;padding-right:5%}.identity h1{font-size:24vw}.intro{margin-left:56px}.intro .handmark{font-size:36px;left:-52px}.intro p{font-size:17px}.heroBottom p{font-size:11px}.page :global(.project-grid){gap:36px}.page :global(.project-visual),.page :global(.project-card:nth-child(even) .project-visual),.page :global(.project-card:last-child .project-visual){height:auto;min-height:260px;aspect-ratio:4/3}.page :global(.project-caption h3){font-size:17px}.contactTitle{font-size:19vw}.contactTitle>svg{width:32px;height:32px}.emailRow{gap:10px}.navContact{font-size:10px;padding:8px 11px;gap:8px}.page section{scroll-margin-top:84px}}
 @media(max-width:380px){.navbar{height:68px}.hero{padding-top:104px}.identity h1{font-size:23vw}.intro{margin-left:48px}.intro .handmark{font-size:32px;left:-44px}.intro p{font-size:16px;line-height:1.5}.sectionHeading h2{font-size:38px}.aboutContent .statement{font-size:30px}.contactTitle{font-size:18vw}.emailRow{font-size:14px}.footer{font-size:12px}}
 @media(max-height:500px) and (orientation:landscape){.navbar{height:64px}.hero{padding-top:96px;min-height:auto}.identity{margin-top:24px}.work,.about,.playground,.contact{padding-top:56px}}
+@media(max-width:600px){.toolbox{margin-top:38px}.toolboxHeading{display:block}.toolboxHeading p{margin-top:8px;white-space:normal}.toolGroups{grid-template-columns:1fr;gap:8px}.toolGroup{padding:14px 16px}.toolGroup>span{margin-bottom:12px}.toolGroup ul{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.toolGroup li{gap:7px;font-size:11px}.toolGroup li img{width:19px;height:19px}}
+@media(max-width:340px){.toolGroup{padding:12px 14px}.toolGroup li{gap:5px;font-size:10.5px}.toolGroup li img{width:17px;height:17px}}
 @media(prefers-reduced-motion:reduce){.page *, .page *:before,.page *:after{transition:none!important;animation:none!important}}
 
-.page .portrait{display:block;width:100%;max-width:300px;height:auto;aspect-ratio:1;border-radius:6px;margin:0 0 20px}
+.page .portrait{display:block;width:100%;max-width:300px;height:auto;aspect-ratio:1;object-fit:cover;border-radius:6px;margin:0 0 20px}
 
 /* All project imagery shares one buttery hover language; parallax uses transform so hover stays on scale-friendly props. */
 .page :global(.aether-photo),.page :global(.ether-photo){will-change:transform;backface-visibility:hidden}
