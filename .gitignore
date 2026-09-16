@@ -29,3 +29,7 @@ yarn-error.log*
 # prompts
 /prompts/
 .vercel
+
+# scratch and local artifacts
+/output/
+/tmp/
