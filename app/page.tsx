@@ -1,24 +1,12 @@
-'use client';
-
-import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { ArrowUpRight, ArrowUp, ArrowDown, Menu, Copy, Check, Asterisk } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import { preload } from 'react-dom';
+import { ArrowUpRight, Asterisk } from 'lucide-react';
 import { Work } from '@/components/work';
 import { Playground } from '@/components/playground';
-import { AmbientField } from '@/components/ambient-field';
 import { ContactVideo } from '@/components/contact-video';
-import { useMotionPreference } from '@/components/motion-provider';
-import { CursorFollower, usePortfolioMotion } from '@/components/portfolio-motion';
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from '@/components/ui/dialog';
-import { GmailIcon, LinkedinIcon, GithubIcon, XIcon } from '@/components/contact-icons';
+import { HomeMotion, HomeAtmosphere, MobileMenu, ExploreWorkLink, EmailCard, BackToTop, PortraitReveal } from '@/components/home-interactions';
+import { LinkedinIcon, GithubIcon, XIcon } from '@/components/contact-icons';
 import styles from './home.module.css';
-
-const PortraitReveal = dynamic(() => import('@/components/portrait-reveal').then(m => m.PortraitReveal), { ssr: true });
-
-gsap.registerPlugin(useGSAP);
 
 const toolGroups = [
   { label: 'Design', tools: [['Figma', 'figma'], ['Framer', 'framer'], ['Spline', 'spline']] },
@@ -27,77 +15,24 @@ const toolGroups = [
 ] as const;
 
 export default function Home() {
-  const root = useRef<HTMLDivElement>(null);
-  const { paused } = useMotionPreference();
-  const [menu, setMenu] = useState(false);
-  const menuTarget = useRef<string | null>(null);
-  const [copyStatus, setCopyStatus] = useState('');
-  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  usePortfolioMotion(root);
-  useEffect(() => () => { if (copyTimer.current) clearTimeout(copyTimer.current); }, []);
-
-  // Hero scroll cue: gentle idle bob + hover/focus dip-and-return.
-  // Scoped to this page, disabled when motion is paused or reduced.
-  useGSAP(() => {
-    if (paused) return;
-    const mm = gsap.matchMedia();
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
-      const link = root.current?.querySelector(`.${styles.heroBottom} > a`);
-      const pill = root.current?.querySelector(`.${styles.scrollButton}`);
-      const arrow = pill?.querySelector('svg');
-      if (!link || !pill || !arrow) return;
-      const bob = gsap.to(arrow, { y: 5, duration: .85, ease: 'sine.inOut', repeat: -1, yoyo: true });
-      let cueing = false;
-      const cue = () => {
-        if (cueing) return;
-        cueing = true;
-        bob.pause();
-        gsap.timeline({ onComplete: () => { cueing = false; bob.play(); } })
-          .to(arrow, { y: 10, autoAlpha: 0, duration: .24, ease: 'power2.in', overwrite: 'auto' })
-          .set(arrow, { y: -10 })
-          .to(arrow, { y: 0, autoAlpha: 1, duration: .5, ease: 'power3.out' })
-          .to(pill, { y: -2, duration: .16, ease: 'power2.out', yoyo: true, repeat: 1 }, 0);
-      };
-      link.addEventListener('pointerenter', cue);
-      link.addEventListener('focusin', cue);
-      return () => {
-        link.removeEventListener('pointerenter', cue);
-        link.removeEventListener('focusin', cue);
-        bob.kill();
-        gsap.set([arrow, pill], { clearProps: 'all' });
-      };
-    });
-    return () => mm.revert();
-  }, { scope: root, dependencies: [paused], revertOnUpdate: true });
-  async function copyEmail() {
-    try {
-      await navigator.clipboard.writeText('geralddonkor1@gmail.com');
-      setCopyStatus('Email copied');
-      if (copyTimer.current) clearTimeout(copyTimer.current);
-      copyTimer.current = setTimeout(() => setCopyStatus(''), 2500);
-    } catch { setCopyStatus('Select the email address to copy it.'); }
-  }
-
-  return <div ref={root} className={`${styles.page}${paused ? ' motion-paused' : ''}`}>
+  // Match the picture's candidates so the browser starts the correct hero file
+  // from the document head without downloading a second fallback image.
+  preload('/images/hero-wireframes-2560.webp', {
+    as: 'image',
+    type: 'image/webp',
+    fetchPriority: 'high',
+    imageSrcSet: '/images/hero-wireframes-1600.webp 1600w, /images/hero-wireframes-2560.webp 2560w, /images/hero-wireframes-3840.webp 3840w',
+    imageSizes: '(max-width: 860px) 150svh, 100vw',
+  });
+  return <HomeMotion>
     <a className="skip-link" href="#main">Skip to content</a>
-    <AmbientField /><CursorFollower />
+    <HomeAtmosphere />
     <header className={styles.navbar}>
       <a href="#main" className={styles.wordmark} aria-label="Gerald Donkor, back to top">gd<span>↗</span></a>
       <span className={styles.navRole}>Independent design engineer</span>
       <nav aria-label="Main navigation"><a href="#work">Work<sup>5</sup></a><a href="#about">About</a><a href="#playground">Play</a></nav>
       <a className={styles.navContact} href="#contact" data-magnetic>Let’s talk <ArrowUpRight size={15} aria-hidden="true" /></a>
-      <Dialog open={menu} onOpenChange={setMenu}>
-        <DialogTrigger asChild><button className={styles.menuButton} aria-label="Open menu"><Menu /></button></DialogTrigger>
-        <DialogContent className="mobile-dialog" onCloseAutoFocus={event => {
-          const target = menuTarget.current ? document.getElementById(menuTarget.current) : null;
-          menuTarget.current = null;
-          if (target) { event.preventDefault(); target.focus({ preventScroll: true }); target.scrollIntoView({ behavior: paused ? 'instant' : 'smooth' }); }
-        }}>
-          <DialogTitle className="sr-only">Navigation</DialogTitle><DialogDescription className="sr-only">Explore Gerald’s portfolio.</DialogDescription>
-          <span className="menu-wordmark">Gerald Donkor</span>
-          <nav aria-label="Mobile navigation">{['Work', 'About', 'Playground', 'Contact'].map(item => <DialogClose asChild key={item}><a href={`#${item.toLowerCase()}`} onClick={() => { menuTarget.current = item.toLowerCase(); }}>{item}<ArrowUpRight /></a></DialogClose>)}</nav>
-        </DialogContent>
-      </Dialog>
+      <MobileMenu />
     </header>
     <main id="main" tabIndex={-1}>
       <section data-preferences-hero className={styles.hero} aria-labelledby="hero-title">
@@ -144,15 +79,7 @@ export default function Home() {
           <h1 id="hero-title"><span className="hero-line"><span>Gerald</span></span><span className="hero-line"><span>Donkor</span></span></h1>
           <div className={`${styles.intro} hero-detail`}><span className={styles.handmark} data-spin aria-hidden="true"><span><Asterisk strokeWidth={1} /></span></span><p>I design the interface.<br />I write the code.<br />I care how it feels.</p><span>Independent design engineer<br />based in Ghana.</span></div>
         </div>
-        <div className={`${styles.heroBottom} hero-detail`}><p>A place for the things I make<br />and the details I get lost in.</p><a href="#work" onClick={event => {
-          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-          const work = document.getElementById('work');
-          if (!work) return;
-          event.preventDefault();
-          work.focus({ preventScroll: true });
-          work.scrollIntoView({ behavior: paused ? 'instant' : 'smooth', block: 'start' });
-          window.history.replaceState(null, '', '#work');
-        }}>Explore the work <span className={styles.scrollButton}><ArrowDown size={20} aria-hidden="true" /></span></a></div>
+        <div className={`${styles.heroBottom} hero-detail`}><p>A place for the things I make<br />and the details I get lost in.</p><ExploreWorkLink /></div>
       </section>
       <section id="work" tabIndex={-1} className={styles.work}>
         <div className={styles.sectionHeading}><h2>Selected work<span> (5)</span></h2><p>From the first sketch<br />to the last interaction.</p></div>
@@ -177,51 +104,7 @@ export default function Home() {
         <a className={styles.contactTitle} href="mailto:geralddonkor1@gmail.com" data-cursor="link">Let’s make<br />it happen.<ArrowUpRight aria-hidden="true" /></a>
         <div className={styles.contactChannels} aria-label="Contact channels and social profiles">
           {/* Email Card */}
-          <div className={`${styles.contactCard} ${styles.contactCardGmail}`}>
-            <a
-              href="mailto:geralddonkor1@gmail.com"
-              className={styles.cardLink}
-              data-cursor="link"
-            >
-              <span className={styles.cardIcon}>
-                <GmailIcon />
-              </span>
-              <div className={styles.cardDetails}>
-                <span className={styles.cardPlatform}>Email</span>
-                <span className={styles.cardHandle}>geralddonkor1@gmail.com</span>
-              </div>
-            </a>
-            <div className={styles.cardActions}>
-              <button
-                type="button"
-                onClick={copyEmail}
-                className={`${styles.cardActionBtn} ${copyStatus ? styles.copied : ''}`}
-                aria-label="Copy email address"
-                title={copyStatus ? 'Email copied' : 'Copy email address'}
-                data-magnetic
-              >
-                {copyStatus === 'Email copied' ? (
-                  <Check size={14} aria-hidden="true" />
-                ) : (
-                  <Copy size={14} aria-hidden="true" />
-                )}
-              </button>
-              <a
-                href="mailto:geralddonkor1@gmail.com"
-                className={styles.cardActionBtn}
-                aria-label="Send email to geralddonkor1@gmail.com"
-                title="Send email"
-                data-magnetic
-              >
-                <ArrowUpRight size={14} aria-hidden="true" />
-              </a>
-            </div>
-            {copyStatus && (
-              <span className={styles.copyToast} role="status">
-                <Check size={11} aria-hidden="true" /> Copied
-              </span>
-            )}
-          </div>
+          <EmailCard />
 
           {/* GitHub Card */}
           <a
@@ -302,20 +185,9 @@ export default function Home() {
             </a>
           </div>
           <span>© {new Date().getFullYear()}</span>
-          <button
-            type="button"
-            className={styles.backToTop}
-            aria-label="Back to top"
-            title="Back to top"
-            onClick={() => {
-              root.current?.querySelector<HTMLAnchorElement>('header a')?.focus({ preventScroll: true });
-              window.scrollTo({ top: 0, behavior: paused ? 'instant' : 'smooth' });
-            }}
-          >
-            <ArrowUp size={21} strokeWidth={1.5} aria-hidden="true" />
-          </button>
+          <BackToTop />
         </footer>
       </section>
     </main>
-  </div>;
+  </HomeMotion>;
 }
