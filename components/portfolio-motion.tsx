@@ -147,7 +147,7 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>) {
 
       // — Quiet supporting reveals, all sharing the same expo + blur language.
       root.current!.querySelectorAll<HTMLElement>(
-        '[class*="aboutContent"] > p, [class*="capabilities"] > div, .play-card, [class*="sectionHeading"] p, [class*="heroPrelude"], [class*="heroBottom"], [class*="contactPrelude"], [class*="emailRow"], [class*="contactCard"], [class*="footer"]',
+        '[class*="aboutContent"] > p, [class*="capabilities"] > div, [class*="resumeActions"], .play-card, [class*="sectionHeading"] p, [class*="heroPrelude"], [class*="heroBottom"], [class*="contactPrelude"], [class*="emailRow"], [class*="contactCard"], [class*="footer"]',
       ).forEach((el) => {
         gsap.from(el, {
           y: 28,
