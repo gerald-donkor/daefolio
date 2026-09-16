@@ -124,3 +124,47 @@
 
 .scrollButton svg{display:block;will-change:transform}
 @media (prefers-reduced-motion: reduce){.scrollButton svg{transform:none!important}}
+
+/* Each work card is a small interface. Make its internal type, imagery, and
+   overlays respond to the card width instead of preserving desktop geometry. */
+@media(max-width:600px){
+  .page :global(.project-visual){overflow:hidden}
+  .page :global(.visual-aetherfield){padding:clamp(18px,7cqw,28px)}
+  .page :global(.aether-type){width:min(62%,250px)}
+  .page :global(.aether-type>span){font-size:clamp(24px,9.5cqw,36px);letter-spacing:-.07em;line-height:1.02;margin:clamp(18px,7cqw,28px) 0 clamp(14px,5cqw,20px)}
+  .page :global(.aether-photo){width:45%;object-position:46% center}
+  .page :global(.metric-float){right:2%;bottom:5%;width:min(48%,190px);padding:clamp(10px,3.5cqw,15px);transform:scale(.78);transform-origin:bottom right}
+  .page :global(.bar-chart){height:clamp(34px,13cqw,52px);gap:3px;margin-bottom:8px}
+  .page :global(.metric-float strong){font-size:clamp(18px,7cqw,27px);margin:7px 0}
+  .page :global(.visual-studio-antenix){padding:clamp(18px,7cqw,28px)}
+  .page :global(.studio-top),.page :global(.studio-bottom){font-size:clamp(6px,2.1cqw,8px)}
+  .page :global(.studio-type){width:69%;font-size:clamp(47px,19cqw,67px);letter-spacing:-.075em;margin-top:clamp(29px,12cqw,45px)}
+  .page :global(.studio-photo){right:7%;top:18%;width:30%;height:64%}
+  .page :global(.studio-bottom){left:clamp(18px,7cqw,28px);right:clamp(18px,7cqw,28px);bottom:clamp(17px,6cqw,25px)}
+  .page :global(.visual-jobbiton),.page :global(.visual-pixca){padding:clamp(16px,6.5cqw,27px)}
+  .page :global(.job-type strong){font-size:clamp(21px,8.4cqw,29px);line-height:1.1}
+  .page :global(.job-dashboard-image){width:88%;left:14%;top:43%;border-width:clamp(3px,1.3cqw,5px)}
+  .page :global(.pixca-masthead){font-size:clamp(38px,15.5cqw,52px);letter-spacing:-.075em}
+  .page :global(.pixca-layout){gap:clamp(10px,4cqw,16px);margin-top:clamp(15px,6cqw,24px)}
+  .page :global(.pixca-layout h4){font-size:clamp(22px,8.5cqw,30px);letter-spacing:-.06em;margin:clamp(10px,4cqw,15px) 0}
+  .page :global(.pixca-photo){height:clamp(72px,28cqw,110px)}
+  .page :global(.pixca-stack>div){gap:5px;padding:clamp(5px,2cqw,8px) 0;font-size:clamp(6px,2.5cqw,8px)}
+  .page :global(.ether-type){padding:clamp(18px,7cqw,30px)}
+  .page :global(.ether-type>strong){font-size:clamp(32px,12.5cqw,42px);margin-top:clamp(24px,9cqw,34px)}
+  .page :global(.ether-type em){font-size:inherit}
+  .page :global(.ether-prompt){display:grid;grid-template-columns:auto minmax(0,1fr) auto;justify-content:normal;left:clamp(18px,7cqw,30px);right:clamp(18px,7cqw,30px);bottom:clamp(18px,7cqw,30px);padding:clamp(8px,3cqw,12px);font-size:clamp(7px,2.8cqw,9px)}
+  .page :global(.ether-prompt span){min-width:0;overflow-wrap:anywhere}
+  .page :global(.ether-prompt svg){flex:none}
+}
+@media(max-width:380px){
+  .page :global(.project-visual),.page :global(.project-card:nth-child(even) .project-visual),.page :global(.project-card:last-child .project-visual){min-height:230px}
+  .page :global(.aether-type){width:65%}
+  .page :global(.aether-type>span){font-size:clamp(22px,10cqw,30px)}
+  .page :global(.metric-float){transform:scale(.65);right:-2%;bottom:1%}
+  .page :global(.studio-type){font-size:clamp(43px,19cqw,58px)}
+  .page :global(.pixca-nav){font-size:6px}
+  .page :global(.pixca-layout p),.page :global(.visual-disclaimer){font-size:7px}
+  .page :global(.ether-type>strong){font-size:clamp(28px,11.5cqw,34px);line-height:1.01;margin-top:clamp(18px,7cqw,24px)}
+  .page :global(.ether-prompt){gap:clamp(5px,2cqw,8px);font-size:clamp(7px,2.9cqw,8px);line-height:1.25}
+  .page :global(.ether-prompt svg){width:clamp(12px,5cqw,16px);height:clamp(12px,5cqw,16px)}
+}

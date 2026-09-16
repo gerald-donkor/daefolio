@@ -17,3 +17,15 @@ body{font-family:var(--font-manrope),Arial,sans-serif!important}.eyebrow,.hero-l
 @keyframes code-reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:700px){.hero-code{inset:0}.hero-code pre{padding:10px 12px}.code-titlebar{padding:9px 14px}.code-status{padding:8px 14px}}
 @media(prefers-reduced-motion:reduce){.hero-code{animation:none}}
+
+/* Dialog content renders in a portal, outside the home page scope. Keep the
+   project canvas and Ether's UI sized to the dialog itself on narrow screens. */
+@media(max-width:600px){
+  .dialog-content>.project-visual{width:100%;max-width:100%;box-sizing:border-box;container-type:inline-size}
+  .dialog-content .ether-type{padding:clamp(16px,7cqw,24px)}
+  .dialog-content .ether-type>strong{font-size:clamp(28px,12cqw,40px);line-height:1.02;margin-top:clamp(16px,7cqw,26px)}
+  .dialog-content .ether-type em{font-size:inherit}
+  .dialog-content .ether-prompt{display:grid;grid-template-columns:auto minmax(0,1fr) auto;justify-content:normal;gap:clamp(5px,2cqw,9px);left:clamp(16px,7cqw,24px);right:clamp(16px,7cqw,24px);bottom:clamp(16px,7cqw,24px);padding:clamp(8px,3cqw,11px);font-size:clamp(7px,2.8cqw,9px);line-height:1.25}
+  .dialog-content .ether-prompt span{min-width:0;overflow-wrap:anywhere}
+  .dialog-content .ether-prompt svg{width:clamp(12px,5cqw,16px);height:clamp(12px,5cqw,16px);flex:none}
+}
