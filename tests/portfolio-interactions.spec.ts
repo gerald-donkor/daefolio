@@ -5,12 +5,14 @@ test.use({
   launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH },
 });
 
-test('transparent navigation, pointer feedback, project dialog and paused field', async ({ page }) => {
+test('glass navigation, pointer feedback, project dialog and paused field', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Pause motion', exact: true })).toBeVisible();
-  await expect(page.locator('header')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-  await expect(page.locator('header')).toHaveCSS('backdrop-filter', 'none');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'running');
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator('.display-preferences')).toHaveAttribute('inert', '');
+  await expect(page.locator('header')).toHaveCSS('background-color', 'color(srgb 0.0627451 0.0823529 0.0862745 / 0.56)');
+  await expect(page.locator('header')).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.5)');
   const cursor = page.locator('[class*="portfolio-motion-module"][aria-hidden]');
   await page.mouse.move(750, 400);
   await page.mouse.move(820, 450, { steps: 10 });
@@ -20,7 +22,7 @@ test('transparent navigation, pointer feedback, project dialog and paused field'
     await page.waitForTimeout(17);
   }
   // Dust is faint; a live pointer wake produces pixels with much higher alpha.
-  const wakeAlpha = await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
+  const wakeAlpha = await page.locator('canvas').first().evaluate((canvas: HTMLCanvasElement) => {
     const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
     let maximum = 0;
     for (let i = 3; i < pixels.length; i += 4) maximum = Math.max(maximum, pixels[i]);
@@ -42,12 +44,15 @@ test('transparent navigation, pointer feedback, project dialog and paused field'
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(project).toBeFocused();
+  // The fixed preference controls appear only once the entire hero is above view.
+  await page.locator('#about').scrollIntoViewIfNeeded();
+  await expect(page.locator('.display-preferences')).toHaveAttribute('data-visible', 'true');
   await page.getByRole('button', { name: 'Pause motion', exact: true }).click();
   await expect(cursor).toHaveCSS('display', 'none');
-  const still = await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL());
+  const still = await page.locator('canvas').first().evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL());
   await page.mouse.move(400, 450, { steps: 15 });
   await page.waitForTimeout(120);
-  expect(await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL())).toBe(still);
+  expect(await page.locator('canvas').first().evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL())).toBe(still);
 });
 
 test('mobile navigation closes, focuses its destination, and fits narrow screens', async ({ page }) => {

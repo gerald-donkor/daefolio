@@ -28,6 +28,8 @@ for (const reduced of [false, true]) {
   test(`portrait reveal and motion preferences, reduced=${reduced}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: reduced ? 'reduce' : 'no-preference' });
     await page.goto('/');
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator('html')).toHaveAttribute('data-motion', reduced ? 'paused' : 'running');
     await page.locator('#about').scrollIntoViewIfNeeded();
     const card = page.locator('button[data-revealed]');
     if (reduced) {

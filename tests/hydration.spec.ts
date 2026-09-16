@@ -21,7 +21,7 @@ for (const scenario of ['running', 'paused', 'reduced'] as const) {
       // Touch each initial button only once, leaving React's later updates intact.
       const seen = new WeakSet<Element>();
       const observer = new MutationObserver(() => {
-        document.querySelectorAll('.theme-options button, button[aria-label="Replay kinetic type"]').forEach(button => {
+        document.querySelectorAll('.theme-options button').forEach(button => {
           if (seen.has(button)) return;
           seen.add(button);
           button.removeAttribute('disabled');
@@ -32,18 +32,22 @@ for (const scenario of ['running', 'paused', 'reduced'] as const) {
     }, { scenario });
 
     await page.goto('/');
+    // In development, HTML and fonts can arrive before hydration finishes.
+    await expect(page.locator('.theme-options button[aria-label="Dark theme"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.evaluate(() => document.fonts.ready);
+    await page.locator('#about').scrollIntoViewIfNeeded();
     const dark = page.getByRole('button', { name: 'Dark theme', exact: true });
     await expect(dark).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    const replay = page.getByRole('button', { name: 'Replay kinetic type' });
+    const portrait = page.locator('button[data-revealed]');
     if (scenario === 'running') {
-      await expect(replay).toBeEnabled();
+      await expect(portrait).toBeEnabled();
       await page.getByRole('button', { name: 'Pause motion', exact: true }).click();
-      await expect(replay).toBeDisabled();
+      await expect(portrait).toBeDisabled();
       await page.getByRole('button', { name: 'Resume motion', exact: true }).click();
-      await expect(replay).toBeEnabled();
+      await expect(portrait).toBeEnabled();
     } else {
-      await expect(replay).toBeDisabled();
+      await expect(portrait).toBeDisabled();
     }
     await page.getByRole('button', { name: 'Light theme', exact: true }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
