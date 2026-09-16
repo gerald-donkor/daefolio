@@ -25,55 +25,49 @@ export function PortraitReveal() {
   const [revealed, setRevealed] = useState(false);
   const { paused } = useMotionPreference();
 
-  // Distinguish a tap (toggles reveal) from a drag (explores tilt / scratches).
-  // Horizontal drags don't scroll the page, so the browser still fires a click —
-  // without this the card would accidentally reveal after every tilt gesture.
+  // Cached stationary bounds to completely eliminate layout thrashing during pointer movement
+  const bounds = useRef({ left: 0, top: 0, width: 0, height: 0 });
+  const hasPainted = useRef(false);
+  const veilImageRef = useRef<HTMLImageElement | null>(null);
+
+  // Preload optimized pre-rendered veil image on client mount
   useEffect(() => {
-    const button = root.current;
-    if (!button) return;
-    let start: { x: number; y: number; id: number } | null = null;
-    let clearTimer = 0;
-    const down = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch') return;
-      if (start !== null) return;
-      start = { x: event.clientX, y: event.clientY, id: event.pointerId };
-      suppressTap.current = false;
-      window.clearTimeout(clearTimer);
-    };
-    const move = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch' || !start || event.pointerId !== start.id) return;
-      if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 12) {
-        suppressTap.current = true;
-      }
-    };
-    const end = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch' || !start || event.pointerId !== start.id) return;
-      start = null;
-      // If the gesture scrolled, no click follows — clear the flag so the next
-      // tap isn't swallowed. If a click does follow it consumes the flag first.
-      if (suppressTap.current) {
-        window.clearTimeout(clearTimer);
-        clearTimer = window.setTimeout(() => { suppressTap.current = false; }, 600);
-      }
-    };
-    button.addEventListener('pointerdown', down, { passive: true });
-    button.addEventListener('pointermove', move, { passive: true });
-    button.addEventListener('pointerup', end, { passive: true });
-    button.addEventListener('pointercancel', end, { passive: true });
-    return () => {
-      window.clearTimeout(clearTimer);
-      button.removeEventListener('pointerdown', down);
-      button.removeEventListener('pointermove', move);
-      button.removeEventListener('pointerup', end);
-      button.removeEventListener('pointercancel', end);
-    };
+    const isRetina = typeof window !== 'undefined' && (window.devicePixelRatio || 1) > 1.5;
+    const veilImg = new window.Image();
+    veilImg.src = isRetina ? '/images/gerald-donkor-veil-1200.webp' : '/images/gerald-donkor-veil.webp';
+    veilImageRef.current = veilImg;
   }, []);
 
+  // Timecode and unified IntersectionObserver for visibility-based resource pausing
   useEffect(() => {
     if (paused) return;
+    const area = stage.current;
+    if (!area) return;
+
+    const measure = () => {
+      if (!stage.current) return;
+      const rect = stage.current.getBoundingClientRect();
+      bounds.current = {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width || 1,
+        height: rect.height || 1,
+      };
+    };
+
     let visible = false;
-    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; });
-    observer.observe(stage.current!);
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) {
+        measure();
+        if (!hasPainted.current) {
+          hasPainted.current = true;
+          reset.current();
+        }
+      }
+    }, { rootMargin: '250px' });
+    observer.observe(area);
+
     const timer = window.setInterval(() => {
       if (!visible || document.hidden || !timecode.current) return;
       elapsed.current += 1;
@@ -81,111 +75,75 @@ export function PortraitReveal() {
       timecode.current.textContent = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
         .map(value => String(value).padStart(2, '0')).join(':');
     }, 1000);
-    return () => { observer.disconnect(); window.clearInterval(timer); };
+
+    window.addEventListener('resize', measure, { passive: true });
+    window.addEventListener('scroll', measure, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(timer);
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure);
+    };
   }, [paused]);
 
+  // Unified GSAP interactions & canvas scratching
   useGSAP(() => {
-    if (paused) return;
-    const area = stage.current!;
-    const button = root.current!;
-    const options = { duration: .5, ease: 'power3.out' };
-    const light = gsap.quickTo(button, '--light-x', { duration: .34, ease: 'power3.out' });
-    const lightY = gsap.quickTo(button, '--light-y', { duration: .34, ease: 'power3.out' });
-    const glare = gsap.quickTo(button, '--glare-strength', { duration: .28, ease: 'power2.out' });
-    const tiltX = gsap.quickTo(button, 'rotationX', options);
-    const tiltY = gsap.quickTo(button, 'rotationY', options);
-    const turn = gsap.quickTo(button, 'rotation', options);
+    const area = stage.current;
+    const button = root.current;
+    const canvas = veil.current;
+    const image = photo.current;
+    if (!area || !button || !canvas || !image) return;
 
-    const move = (clientX: number, clientY: number) => {
-      // Measure the stationary wrapper so the card's own tilt cannot feed back
-      // into the pointer position and make it wobble under a stationary cursor.
-      const bounds = area.getBoundingClientRect();
-      const x = Math.max(-1, Math.min(1, (clientX - bounds.left) / bounds.width * 2 - 1));
-      const y = Math.max(-1, Math.min(1, (clientY - bounds.top) / bounds.height * 2 - 1));
-      light(50 + x * 30);
-      lightY(20 + y * 16);
-      // Keep the reflection legible without lifting the dark portrait grade.
-      glare(.62);
-      tiltX(4 - y * 9);
-      tiltY(-8 + x * 11);
-      turn(5 + x * 3);
-    };
-    const settle = () => { tiltX(4); tiltY(-8); turn(5); light(35); lightY(18); glare(.16); };
-    // Touch has no hover: only follow an active finger (down → move → up),
-    // while mouse/pen keep the hover behaviour.
-    let touchId: number | null = null;
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') {
-        if (event.pointerId !== touchId) return;
-        move(event.clientX, event.clientY);
-        return;
-      }
-      move(event.clientX, event.clientY);
-    };
-    const onDown = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch' || touchId !== null) return;
-      touchId = event.pointerId;
-      move(event.clientX, event.clientY);
-    };
-    const endTouch = (event: PointerEvent) => {
-      if (event.pointerId !== touchId) return;
-      touchId = null;
-      settle();
-    };
-    const onLeave = (event: PointerEvent) => {
-      // pointerleave fires for touch after pointerup — the touch end above
-      // already settled, so only settle hover pointers here.
-      if (event.pointerType === 'touch') return;
-      settle();
-    };
-    area.addEventListener('pointermove', onMove, { passive: true });
-    area.addEventListener('pointerdown', onDown, { passive: true });
-    area.addEventListener('pointerup', endTouch);
-    area.addEventListener('pointerleave', onLeave);
-    area.addEventListener('pointercancel', endTouch);
-    window.addEventListener('pointerup', endTouch);
-    window.addEventListener('pointercancel', endTouch);
-    window.addEventListener('blur', settle);
-    return () => {
-      area.removeEventListener('pointermove', onMove);
-      area.removeEventListener('pointerdown', onDown);
-      area.removeEventListener('pointerup', endTouch);
-      area.removeEventListener('pointerleave', onLeave);
-      area.removeEventListener('pointercancel', endTouch);
-      window.removeEventListener('pointerup', endTouch);
-      window.removeEventListener('pointercancel', endTouch);
-      window.removeEventListener('blur', settle);
-    };
-  }, { scope: stage, dependencies: [paused], revertOnUpdate: true });
-
-  useGSAP(() => {
-    const button = root.current!;
-    const canvas = veil.current!;
-    const image = photo.current!;
     const context = canvas.getContext('2d');
     if (paused || !context) return;
 
     let disposed = false;
     let previous: { x: number; y: number } | null = null;
+
+    // High-performance canvas paint with instant GPU texture blit
     const paint = () => {
-      if (disposed || !image.naturalWidth) return;
-      const resolution = Math.max(SIZE, Math.ceil(canvas.clientWidth * Math.min(window.devicePixelRatio || 1, 3)));
+      if (disposed) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const resolution = Math.min(1200, Math.max(SIZE, Math.ceil(canvas.clientWidth * dpr)));
       canvas.width = resolution;
       canvas.height = resolution;
       context.setTransform(resolution / SIZE, 0, 0, resolution / SIZE, 0, 0);
       context.imageSmoothingQuality = 'high';
       context.globalCompositeOperation = 'source-over';
       context.clearRect(0, 0, SIZE, SIZE);
-      context.filter = 'grayscale(1) blur(9px) brightness(.66) contrast(1.08)';
-      // Keep the unrevealed veil dark, but leave enough shadow detail for the
-      // hair and beard to read naturally instead of becoming solid black.
-      context.drawImage(image, -18, -18, SIZE + 36, SIZE + 36);
-      context.filter = 'none';
+
+      const veilImg = veilImageRef.current;
+      if (veilImg && veilImg.complete && veilImg.naturalWidth > 0) {
+        context.drawImage(veilImg, 0, 0, SIZE, SIZE);
+      } else if (image.complete && image.naturalWidth > 0) {
+        context.filter = 'grayscale(1) blur(9px) brightness(.66) contrast(1.08)';
+        context.drawImage(image, -18, -18, SIZE + 36, SIZE + 36);
+        context.filter = 'none';
+      }
       context.clearRect(SIZE * .12, SIZE * .31, SIZE * .76, SIZE * .17);
       canvas.dataset.ready = 'true';
       previous = null;
     };
     reset.current = paint;
+
+    // If already in view or image ready, render
+    if (image.complete && !hasPainted.current) {
+      paint();
+      hasPainted.current = true;
+    }
+    const onImgLoad = () => {
+      if (!hasPainted.current) {
+        paint();
+        hasPainted.current = true;
+      }
+    };
+    image.addEventListener('load', onImgLoad);
+    if (veilImageRef.current) {
+      veilImageRef.current.addEventListener('load', () => {
+        if (!revealed) paint();
+      });
+    }
 
     const eraseAt = (point: { x: number; y: number }) => {
       if (canvas.dataset.ready !== 'true') return;
@@ -202,76 +160,21 @@ export function PortraitReveal() {
       context.fill();
       previous = point;
     };
-    const toPoint = (clientX: number, clientY: number) => {
-      // offsetX follows the rotated card but is unreliable for touch, so use
-      // the bounding rect corrected for rotation-induced growth instead.
-      const rect = button.getBoundingClientRect();
-      const scale = SIZE / (button.clientWidth - FRAME * 2);
-      const layoutX = clientX - rect.left - (rect.width - button.clientWidth) / 2;
-      const layoutY = clientY - rect.top - (rect.height - button.clientHeight) / 2;
-      return { x: (layoutX - FRAME) * scale, y: (layoutY - FRAME) * scale };
-    };
-    let touchId: number | null = null;
-    const scratch = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') {
-        if (event.pointerId !== touchId) return;
-        eraseAt(toPoint(event.clientX, event.clientY));
-        return;
-      }
-      // offset coordinates follow the rotated card, unlike its bounding rectangle.
-      const scale = SIZE / (button.clientWidth - FRAME * 2);
-      eraseAt({ x: (event.offsetX - FRAME) * scale, y: (event.offsetY - FRAME) * scale });
-    };
-    const press = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch' || touchId !== null) return;
-      touchId = event.pointerId;
-      eraseAt(toPoint(event.clientX, event.clientY));
-    };
-    const endTouch = (event: PointerEvent) => {
-      if (event.pointerId !== touchId) return;
-      touchId = null;
-      previous = null;
-    };
-    const leave = (event: PointerEvent) => {
-      // Touch pointerleave follows pointerup; touch state is cleared above.
-      if ((event as PointerEvent).pointerType === 'touch') return;
-      previous = null;
-    };
-    if (image.complete) paint();
-    image.addEventListener('load', paint);
-    button.addEventListener('pointermove', scratch, { passive: true });
-    button.addEventListener('pointerdown', press, { passive: true });
-    button.addEventListener('pointerup', endTouch);
-    button.addEventListener('pointerleave', leave);
-    button.addEventListener('pointercancel', endTouch);
-    window.addEventListener('pointerup', endTouch);
-    window.addEventListener('pointercancel', endTouch);
-    return () => {
-      disposed = true;
-      reset.current = () => {};
-      delete canvas.dataset.ready;
-      image.removeEventListener('load', paint);
-      button.removeEventListener('pointermove', scratch);
-      button.removeEventListener('pointerdown', press);
-      button.removeEventListener('pointerup', endTouch);
-      button.removeEventListener('pointerleave', leave);
-      button.removeEventListener('pointercancel', endTouch);
-      window.removeEventListener('pointerup', endTouch);
-      window.removeEventListener('pointercancel', endTouch);
-    };
-  }, { scope: root, dependencies: [paused], revertOnUpdate: true });
 
-  useGSAP(() => {
-    if (paused) return;
-    gsap.to(veil.current, { opacity: revealed ? 0 : 1, duration: .55, ease: 'power2.out' });
-  }, { scope: root, dependencies: [revealed, paused], revertOnUpdate: true });
+    // GSAP quickTo tweens for 3D tilt, light, glare and viewfinder reticle
+    const options = { duration: .5, ease: 'power3.out' };
+    const light = gsap.quickTo(button, '--light-x', { duration: .34, ease: 'power3.out' });
+    const lightY = gsap.quickTo(button, '--light-y', { duration: .34, ease: 'power3.out' });
+    const glare = gsap.quickTo(button, '--glare-strength', { duration: .28, ease: 'power2.out' });
+    const tiltX = gsap.quickTo(button, 'rotationX', options);
+    const tiltY = gsap.quickTo(button, 'rotationY', options);
+    const turn = gsap.quickTo(button, 'rotation', options);
 
-  useGSAP(() => {
-    if (paused) return;
-    const button = root.current!;
     const tracking = button.querySelector(`.${styles.focusTracking}`)!;
     const followX = gsap.quickTo(tracking, 'xPercent', { duration: .7, ease: 'power3.out' });
     const followY = gsap.quickTo(tracking, 'yPercent', { duration: .7, ease: 'power3.out' });
+
+    // Background scan & focus animation sequence
     const sweep = `.${styles.focusSweep}`;
     const scan = `.${styles.scanLine}`;
     const sequence = gsap.timeline({ paused: true, repeat: -1, defaults: { ease: 'sine.inOut' } });
@@ -286,63 +189,155 @@ export function PortraitReveal() {
       .to(`.${styles.exposure} b`, { x: -16, duration: 4.5 }, 2)
       .to(`.${styles.exposure} b`, { x: 0, duration: 2 }, 6.5);
 
-    const follow = (clientX: number, clientY: number) => {
-      const rect = button.getBoundingClientRect();
-      followX(Math.max(-6, Math.min(6, ((clientX - rect.left) / rect.width - .5) * 12)));
-      followY(Math.max(-6, Math.min(6, ((clientY - rect.top) / rect.height - .5) * 12)));
-    };
-    const settle = () => { followX(0); followY(0); };
-    // Touch has no hover: only follow an active finger, mouse/pen hover freely.
-    let touchId: number | null = null;
-    const move = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') {
-        if (event.pointerId !== touchId) return;
-        follow(event.clientX, event.clientY);
-        return;
-      }
-      follow(event.clientX, event.clientY);
-    };
-    const press = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch' || touchId !== null) return;
-      touchId = event.pointerId;
-      follow(event.clientX, event.clientY);
-    };
-    const endTouch = (event: PointerEvent) => {
-      if (event.pointerId !== touchId) return;
-      touchId = null;
-      settle();
-    };
-    const leave = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return;
-      settle();
-    };
-    let visible = false;
-    const syncPlayback = () => { sequence.paused(!visible || document.hidden); };
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
+    let isVisible = false;
+    const syncPlayback = () => { sequence.paused(!isVisible || document.hidden); };
+    const visObserver = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
       syncPlayback();
     });
-    observer.observe(button);
-    button.addEventListener('pointermove', move, { passive: true });
-    button.addEventListener('pointerdown', press, { passive: true });
-    button.addEventListener('pointerup', endTouch);
-    button.addEventListener('pointerleave', leave);
-    button.addEventListener('pointercancel', endTouch);
-    window.addEventListener('pointerup', endTouch);
-    window.addEventListener('pointercancel', endTouch);
+    visObserver.observe(button);
     document.addEventListener('visibilitychange', syncPlayback);
-    return () => {
-      observer.disconnect();
-      button.removeEventListener('pointermove', move);
-      button.removeEventListener('pointerdown', press);
-      button.removeEventListener('pointerup', endTouch);
-      button.removeEventListener('pointerleave', leave);
-      button.removeEventListener('pointercancel', endTouch);
-      window.removeEventListener('pointerup', endTouch);
-      window.removeEventListener('pointercancel', endTouch);
-      document.removeEventListener('visibilitychange', syncPlayback);
+
+    const settle = () => {
+      tiltX(4);
+      tiltY(-8);
+      turn(5);
+      light(35);
+      lightY(18);
+      glare(.16);
+      followX(0);
+      followY(0);
+      previous = null;
     };
-  }, { scope: root, dependencies: [paused], revertOnUpdate: true });
+
+    let touchId: number | null = null;
+    let touchStart: { x: number; y: number } | null = null;
+    let clearTimer = 0;
+
+    const measureBoundsIfNeeded = () => {
+      if (bounds.current.width === 0) {
+        const rect = area.getBoundingClientRect();
+        bounds.current = {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width || 1,
+          height: rect.height || 1,
+        };
+      }
+    };
+
+    const handlePointerMove = (clientX: number, clientY: number, isTouchDrag: boolean) => {
+      measureBoundsIfNeeded();
+      const b = bounds.current;
+      const x = Math.max(-1, Math.min(1, ((clientX - b.left) / b.width) * 2 - 1));
+      const y = Math.max(-1, Math.min(1, ((clientY - b.top) / b.height) * 2 - 1));
+
+      // Update 3D card tilt and reflection glare
+      light(50 + x * 30);
+      lightY(20 + y * 16);
+      glare(.62);
+      tiltX(4 - y * 9);
+      tiltY(-8 + x * 11);
+      turn(5 + x * 3);
+
+      // Update viewfinder reticle
+      followX(Math.max(-6, Math.min(6, x * 6)));
+      followY(Math.max(-6, Math.min(6, y * 6)));
+
+      // Scratch veil on mouse hover or active touch drag
+      const scale = SIZE / (b.width - FRAME * 2);
+      const scratchX = (clientX - b.left - FRAME) * scale;
+      const scratchY = (clientY - b.top - FRAME) * scale;
+      eraseAt({ x: scratchX, y: scratchY });
+
+      // Tap suppression detection for touch
+      if (isTouchDrag && touchStart) {
+        if (Math.hypot(clientX - touchStart.x, clientY - touchStart.y) > 12) {
+          suppressTap.current = true;
+        }
+      }
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') {
+        if (event.pointerId !== touchId) return;
+        handlePointerMove(event.clientX, event.clientY, true);
+        return;
+      }
+      handlePointerMove(event.clientX, event.clientY, false);
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      measureBoundsIfNeeded();
+      if (event.pointerType === 'touch') {
+        if (touchId !== null) return;
+        touchId = event.pointerId;
+        touchStart = { x: event.clientX, y: event.clientY };
+        suppressTap.current = false;
+        window.clearTimeout(clearTimer);
+        handlePointerMove(event.clientX, event.clientY, true);
+        return;
+      }
+      const b = bounds.current;
+      const scale = SIZE / (b.width - FRAME * 2);
+      eraseAt({ x: (event.clientX - b.left - FRAME) * scale, y: (event.clientY - b.top - FRAME) * scale });
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') {
+        if (event.pointerId !== touchId) return;
+        touchId = null;
+        touchStart = null;
+        previous = null;
+        settle();
+        if (suppressTap.current) {
+          window.clearTimeout(clearTimer);
+          clearTimer = window.setTimeout(() => { suppressTap.current = false; }, 600);
+        }
+        return;
+      }
+      previous = null;
+    };
+
+    const onPointerLeave = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') return;
+      previous = null;
+      settle();
+    };
+
+    area.addEventListener('pointermove', onPointerMove, { passive: true });
+    area.addEventListener('pointerdown', onPointerDown, { passive: true });
+    area.addEventListener('pointerup', onPointerUp, { passive: true });
+    area.addEventListener('pointerleave', onPointerLeave, { passive: true });
+    area.addEventListener('pointercancel', onPointerUp, { passive: true });
+    window.addEventListener('pointerup', onPointerUp, { passive: true });
+    window.addEventListener('pointercancel', onPointerUp, { passive: true });
+    window.addEventListener('blur', settle);
+
+    return () => {
+      disposed = true;
+      reset.current = () => {};
+      delete canvas.dataset.ready;
+      image.removeEventListener('load', onImgLoad);
+      visObserver.disconnect();
+      document.removeEventListener('visibilitychange', syncPlayback);
+      window.clearTimeout(clearTimer);
+      area.removeEventListener('pointermove', onPointerMove);
+      area.removeEventListener('pointerdown', onPointerDown);
+      area.removeEventListener('pointerup', onPointerUp);
+      area.removeEventListener('pointerleave', onPointerLeave);
+      area.removeEventListener('pointercancel', onPointerUp);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+      window.removeEventListener('blur', settle);
+    };
+  }, { scope: stage, dependencies: [paused], revertOnUpdate: true });
+
+  // Fade veil opacity on reveal toggle
+  useGSAP(() => {
+    if (paused) return;
+    gsap.to(veil.current, { opacity: revealed ? 0 : 1, duration: .55, ease: 'power2.out' });
+  }, { scope: root, dependencies: [revealed, paused], revertOnUpdate: true });
 
   return <div className={styles.portrait} data-paused={paused}>
     <div ref={stage} className={styles.stage}>
