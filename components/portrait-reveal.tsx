@@ -10,7 +10,7 @@ import styles from './portrait-reveal.module.css';
 gsap.registerPlugin(useGSAP);
 
 const SIZE = 600;
-const FRAME = 6;
+const FRAME = 10;
 
 export function PortraitReveal() {
   const stage = useRef<HTMLDivElement>(null);
@@ -20,8 +20,54 @@ export function PortraitReveal() {
   const timecode = useRef<HTMLSpanElement>(null);
   const elapsed = useRef(0);
   const reset = useRef<() => void>(() => {});
+  // Set when a touch drag exceeds the tap slop so the trailing click is ignored.
+  const suppressTap = useRef(false);
   const [revealed, setRevealed] = useState(false);
   const { paused } = useMotionPreference();
+
+  // Distinguish a tap (toggles reveal) from a drag (explores tilt / scratches).
+  // Horizontal drags don't scroll the page, so the browser still fires a click —
+  // without this the card would accidentally reveal after every tilt gesture.
+  useEffect(() => {
+    const button = root.current;
+    if (!button) return;
+    let start: { x: number; y: number; id: number } | null = null;
+    let clearTimer = 0;
+    const down = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch') return;
+      if (start !== null) return;
+      start = { x: event.clientX, y: event.clientY, id: event.pointerId };
+      suppressTap.current = false;
+      window.clearTimeout(clearTimer);
+    };
+    const move = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch' || !start || event.pointerId !== start.id) return;
+      if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 12) {
+        suppressTap.current = true;
+      }
+    };
+    const end = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch' || !start || event.pointerId !== start.id) return;
+      start = null;
+      // If the gesture scrolled, no click follows — clear the flag so the next
+      // tap isn't swallowed. If a click does follow it consumes the flag first.
+      if (suppressTap.current) {
+        window.clearTimeout(clearTimer);
+        clearTimer = window.setTimeout(() => { suppressTap.current = false; }, 600);
+      }
+    };
+    button.addEventListener('pointerdown', down, { passive: true });
+    button.addEventListener('pointermove', move, { passive: true });
+    button.addEventListener('pointerup', end, { passive: true });
+    button.addEventListener('pointercancel', end, { passive: true });
+    return () => {
+      window.clearTimeout(clearTimer);
+      button.removeEventListener('pointerdown', down);
+      button.removeEventListener('pointermove', move);
+      button.removeEventListener('pointerup', end);
+      button.removeEventListener('pointercancel', end);
+    };
+  }, []);
 
   useEffect(() => {
     if (paused) return;
@@ -43,32 +89,71 @@ export function PortraitReveal() {
     const area = stage.current!;
     const button = root.current!;
     const options = { duration: .5, ease: 'power3.out' };
-    const light = gsap.quickTo(button, '--light-x', { duration: .6, ease: 'power3.out' });
+    const light = gsap.quickTo(button, '--light-x', { duration: .34, ease: 'power3.out' });
+    const lightY = gsap.quickTo(button, '--light-y', { duration: .34, ease: 'power3.out' });
+    const glare = gsap.quickTo(button, '--glare-strength', { duration: .28, ease: 'power2.out' });
     const tiltX = gsap.quickTo(button, 'rotationX', options);
     const tiltY = gsap.quickTo(button, 'rotationY', options);
     const turn = gsap.quickTo(button, 'rotation', options);
 
-    const move = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return;
+    const move = (clientX: number, clientY: number) => {
       // Measure the stationary wrapper so the card's own tilt cannot feed back
       // into the pointer position and make it wobble under a stationary cursor.
       const bounds = area.getBoundingClientRect();
-      const x = Math.max(-1, Math.min(1, (event.clientX - bounds.left) / bounds.width * 2 - 1));
-      const y = Math.max(-1, Math.min(1, (event.clientY - bounds.top) / bounds.height * 2 - 1));
+      const x = Math.max(-1, Math.min(1, (clientX - bounds.left) / bounds.width * 2 - 1));
+      const y = Math.max(-1, Math.min(1, (clientY - bounds.top) / bounds.height * 2 - 1));
       light(50 + x * 30);
+      lightY(20 + y * 16);
+      // Keep the reflection legible without lifting the dark portrait grade.
+      glare(.62);
       tiltX(4 - y * 9);
       tiltY(-8 + x * 11);
       turn(5 + x * 3);
     };
-    const settle = () => { tiltX(4); tiltY(-8); turn(5); light(35); };
-    area.addEventListener('pointermove', move, { passive: true });
-    area.addEventListener('pointerleave', settle);
-    area.addEventListener('pointercancel', settle);
+    const settle = () => { tiltX(4); tiltY(-8); turn(5); light(35); lightY(18); glare(.16); };
+    // Touch has no hover: only follow an active finger (down → move → up),
+    // while mouse/pen keep the hover behaviour.
+    let touchId: number | null = null;
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') {
+        if (event.pointerId !== touchId) return;
+        move(event.clientX, event.clientY);
+        return;
+      }
+      move(event.clientX, event.clientY);
+    };
+    const onDown = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch' || touchId !== null) return;
+      touchId = event.pointerId;
+      move(event.clientX, event.clientY);
+    };
+    const endTouch = (event: PointerEvent) => {
+      if (event.pointerId !== touchId) return;
+      touchId = null;
+      settle();
+    };
+    const onLeave = (event: PointerEvent) => {
+      // pointerleave fires for touch after pointerup — the touch end above
+      // already settled, so only settle hover pointers here.
+      if (event.pointerType === 'touch') return;
+      settle();
+    };
+    area.addEventListener('pointermove', onMove, { passive: true });
+    area.addEventListener('pointerdown', onDown, { passive: true });
+    area.addEventListener('pointerup', endTouch);
+    area.addEventListener('pointerleave', onLeave);
+    area.addEventListener('pointercancel', endTouch);
+    window.addEventListener('pointerup', endTouch);
+    window.addEventListener('pointercancel', endTouch);
     window.addEventListener('blur', settle);
     return () => {
-      area.removeEventListener('pointermove', move);
-      area.removeEventListener('pointerleave', settle);
-      area.removeEventListener('pointercancel', settle);
+      area.removeEventListener('pointermove', onMove);
+      area.removeEventListener('pointerdown', onDown);
+      area.removeEventListener('pointerup', endTouch);
+      area.removeEventListener('pointerleave', onLeave);
+      area.removeEventListener('pointercancel', endTouch);
+      window.removeEventListener('pointerup', endTouch);
+      window.removeEventListener('pointercancel', endTouch);
       window.removeEventListener('blur', settle);
     };
   }, { scope: stage, dependencies: [paused], revertOnUpdate: true });
@@ -91,8 +176,9 @@ export function PortraitReveal() {
       context.imageSmoothingQuality = 'high';
       context.globalCompositeOperation = 'source-over';
       context.clearRect(0, 0, SIZE, SIZE);
-      context.filter = 'grayscale(1) blur(12px) brightness(0.78)';
-      // Only the photographic veil is defocused; the glass and camera UI stay crisp.
+      context.filter = 'grayscale(1) blur(9px) brightness(.66) contrast(1.08)';
+      // Keep the unrevealed veil dark, but leave enough shadow detail for the
+      // hair and beard to read naturally instead of becoming solid black.
       context.drawImage(image, -18, -18, SIZE + 36, SIZE + 36);
       context.filter = 'none';
       context.clearRect(SIZE * .12, SIZE * .31, SIZE * .76, SIZE * .17);
@@ -101,11 +187,8 @@ export function PortraitReveal() {
     };
     reset.current = paint;
 
-    const scratch = (event: PointerEvent) => {
-      if (event.pointerType === 'touch' || canvas.dataset.ready !== 'true') return;
-      // offset coordinates follow the rotated card, unlike its bounding rectangle.
-      const scale = SIZE / (button.clientWidth - FRAME * 2);
-      const point = { x: (event.offsetX - FRAME) * scale, y: (event.offsetY - FRAME) * scale };
+    const eraseAt = (point: { x: number; y: number }) => {
+      if (canvas.dataset.ready !== 'true') return;
       context.globalCompositeOperation = 'destination-out';
       context.lineWidth = SIZE * .28;
       context.lineCap = 'round';
@@ -119,20 +202,62 @@ export function PortraitReveal() {
       context.fill();
       previous = point;
     };
-    const leave = () => { previous = null; };
+    const toPoint = (clientX: number, clientY: number) => {
+      // offsetX follows the rotated card but is unreliable for touch, so use
+      // the bounding rect corrected for rotation-induced growth instead.
+      const rect = button.getBoundingClientRect();
+      const scale = SIZE / (button.clientWidth - FRAME * 2);
+      const layoutX = clientX - rect.left - (rect.width - button.clientWidth) / 2;
+      const layoutY = clientY - rect.top - (rect.height - button.clientHeight) / 2;
+      return { x: (layoutX - FRAME) * scale, y: (layoutY - FRAME) * scale };
+    };
+    let touchId: number | null = null;
+    const scratch = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') {
+        if (event.pointerId !== touchId) return;
+        eraseAt(toPoint(event.clientX, event.clientY));
+        return;
+      }
+      // offset coordinates follow the rotated card, unlike its bounding rectangle.
+      const scale = SIZE / (button.clientWidth - FRAME * 2);
+      eraseAt({ x: (event.offsetX - FRAME) * scale, y: (event.offsetY - FRAME) * scale });
+    };
+    const press = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch' || touchId !== null) return;
+      touchId = event.pointerId;
+      eraseAt(toPoint(event.clientX, event.clientY));
+    };
+    const endTouch = (event: PointerEvent) => {
+      if (event.pointerId !== touchId) return;
+      touchId = null;
+      previous = null;
+    };
+    const leave = (event: PointerEvent) => {
+      // Touch pointerleave follows pointerup; touch state is cleared above.
+      if ((event as PointerEvent).pointerType === 'touch') return;
+      previous = null;
+    };
     if (image.complete) paint();
     image.addEventListener('load', paint);
     button.addEventListener('pointermove', scratch, { passive: true });
+    button.addEventListener('pointerdown', press, { passive: true });
+    button.addEventListener('pointerup', endTouch);
     button.addEventListener('pointerleave', leave);
-    button.addEventListener('pointercancel', leave);
+    button.addEventListener('pointercancel', endTouch);
+    window.addEventListener('pointerup', endTouch);
+    window.addEventListener('pointercancel', endTouch);
     return () => {
       disposed = true;
       reset.current = () => {};
       delete canvas.dataset.ready;
       image.removeEventListener('load', paint);
       button.removeEventListener('pointermove', scratch);
+      button.removeEventListener('pointerdown', press);
+      button.removeEventListener('pointerup', endTouch);
       button.removeEventListener('pointerleave', leave);
-      button.removeEventListener('pointercancel', leave);
+      button.removeEventListener('pointercancel', endTouch);
+      window.removeEventListener('pointerup', endTouch);
+      window.removeEventListener('pointercancel', endTouch);
     };
   }, { scope: root, dependencies: [paused], revertOnUpdate: true });
 
@@ -161,12 +286,36 @@ export function PortraitReveal() {
       .to(`.${styles.exposure} b`, { x: -16, duration: 4.5 }, 2)
       .to(`.${styles.exposure} b`, { x: 0, duration: 2 }, 6.5);
 
-    const move = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return;
-      followX(Math.max(-6, Math.min(6, (event.offsetX / button.clientWidth - .5) * 12)));
-      followY(Math.max(-6, Math.min(6, (event.offsetY / button.clientHeight - .5) * 12)));
+    const follow = (clientX: number, clientY: number) => {
+      const rect = button.getBoundingClientRect();
+      followX(Math.max(-6, Math.min(6, ((clientX - rect.left) / rect.width - .5) * 12)));
+      followY(Math.max(-6, Math.min(6, ((clientY - rect.top) / rect.height - .5) * 12)));
     };
     const settle = () => { followX(0); followY(0); };
+    // Touch has no hover: only follow an active finger, mouse/pen hover freely.
+    let touchId: number | null = null;
+    const move = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') {
+        if (event.pointerId !== touchId) return;
+        follow(event.clientX, event.clientY);
+        return;
+      }
+      follow(event.clientX, event.clientY);
+    };
+    const press = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch' || touchId !== null) return;
+      touchId = event.pointerId;
+      follow(event.clientX, event.clientY);
+    };
+    const endTouch = (event: PointerEvent) => {
+      if (event.pointerId !== touchId) return;
+      touchId = null;
+      settle();
+    };
+    const leave = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') return;
+      settle();
+    };
     let visible = false;
     const syncPlayback = () => { sequence.paused(!visible || document.hidden); };
     const observer = new IntersectionObserver(([entry]) => {
@@ -175,14 +324,22 @@ export function PortraitReveal() {
     });
     observer.observe(button);
     button.addEventListener('pointermove', move, { passive: true });
-    button.addEventListener('pointerleave', settle);
-    button.addEventListener('pointercancel', settle);
+    button.addEventListener('pointerdown', press, { passive: true });
+    button.addEventListener('pointerup', endTouch);
+    button.addEventListener('pointerleave', leave);
+    button.addEventListener('pointercancel', endTouch);
+    window.addEventListener('pointerup', endTouch);
+    window.addEventListener('pointercancel', endTouch);
     document.addEventListener('visibilitychange', syncPlayback);
     return () => {
       observer.disconnect();
       button.removeEventListener('pointermove', move);
-      button.removeEventListener('pointerleave', settle);
-      button.removeEventListener('pointercancel', settle);
+      button.removeEventListener('pointerdown', press);
+      button.removeEventListener('pointerup', endTouch);
+      button.removeEventListener('pointerleave', leave);
+      button.removeEventListener('pointercancel', endTouch);
+      window.removeEventListener('pointerup', endTouch);
+      window.removeEventListener('pointercancel', endTouch);
       document.removeEventListener('visibilitychange', syncPlayback);
     };
   }, { scope: root, dependencies: [paused], revertOnUpdate: true });
@@ -197,7 +354,18 @@ export function PortraitReveal() {
       disabled={paused}
       aria-label={revealed ? 'Reset portrait reveal' : 'Reveal full portrait of Gerald Donkor'}
       aria-pressed={revealed}
+      onClickCapture={(event) => {
+        if (suppressTap.current) {
+          event.preventDefault();
+          event.stopPropagation();
+          suppressTap.current = false;
+        }
+      }}
       onClick={() => {
+        if (suppressTap.current) {
+          suppressTap.current = false;
+          return;
+        }
         if (revealed) reset.current();
         setRevealed(!revealed);
       }}
@@ -230,7 +398,7 @@ export function PortraitReveal() {
     </button>
     </div>
     {!paused && <span className={styles.hint} aria-hidden="true">
-      <span className={styles.desktopHint}>{revealed ? 'Click to reset' : 'Move to explore · click to reveal'}</span><span className={styles.touchHint}>{revealed ? 'Tap to reset' : 'Tap to reveal'}</span>
+      <span className={styles.desktopHint}>{revealed ? 'Click to reset' : 'Move to explore · click to reveal'}</span><span className={styles.touchHint}>{revealed ? 'Tap to reset' : 'Drag to explore · tap to reveal'}</span>
     </span>}
   </div>;
 }

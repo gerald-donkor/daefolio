@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { ArrowUpRight, ArrowUp, ArrowDown, Menu, Copy, Check, Asterisk } from 'lucide-react';
 import { Work } from '@/components/work';
 import { Playground } from '@/components/playground';
@@ -13,6 +15,8 @@ import { CursorFollower, usePortfolioMotion } from '@/components/portfolio-motio
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from '@/components/ui/dialog';
 import { GmailIcon, LinkedinIcon, GithubIcon, XIcon } from '@/components/contact-icons';
 import styles from './home.module.css';
+
+gsap.registerPlugin(useGSAP);
 
 const toolGroups = [
   { label: 'Design', tools: [['Figma', 'figma'], ['Framer', 'framer'], ['Spline', 'spline']] },
@@ -29,6 +33,40 @@ export default function Home() {
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   usePortfolioMotion(root);
   useEffect(() => () => { if (copyTimer.current) clearTimeout(copyTimer.current); }, []);
+
+  // Hero scroll cue: gentle idle bob + hover/focus dip-and-return.
+  // Scoped to this page, disabled when motion is paused or reduced.
+  useGSAP(() => {
+    if (paused) return;
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const link = root.current?.querySelector(`.${styles.heroBottom} > a`);
+      const pill = root.current?.querySelector(`.${styles.scrollButton}`);
+      const arrow = pill?.querySelector('svg');
+      if (!link || !pill || !arrow) return;
+      const bob = gsap.to(arrow, { y: 5, duration: .85, ease: 'sine.inOut', repeat: -1, yoyo: true });
+      let cueing = false;
+      const cue = () => {
+        if (cueing) return;
+        cueing = true;
+        bob.pause();
+        gsap.timeline({ onComplete: () => { cueing = false; bob.play(); } })
+          .to(arrow, { y: 10, autoAlpha: 0, duration: .24, ease: 'power2.in', overwrite: 'auto' })
+          .set(arrow, { y: -10 })
+          .to(arrow, { y: 0, autoAlpha: 1, duration: .5, ease: 'power3.out' })
+          .to(pill, { y: -2, duration: .16, ease: 'power2.out', yoyo: true, repeat: 1 }, 0);
+      };
+      link.addEventListener('pointerenter', cue);
+      link.addEventListener('focusin', cue);
+      return () => {
+        link.removeEventListener('pointerenter', cue);
+        link.removeEventListener('focusin', cue);
+        bob.kill();
+        gsap.set([arrow, pill], { clearProps: 'all' });
+      };
+    });
+    return () => mm.revert();
+  }, { scope: root, dependencies: [paused], revertOnUpdate: true });
   async function copyEmail() {
     try {
       await navigator.clipboard.writeText('geralddonkor1@gmail.com');

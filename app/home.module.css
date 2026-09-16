@@ -121,3 +121,6 @@
 @media (prefers-reduced-motion: reduce) {
   .backToTop, .backToTop svg { transition: none; transform: none !important; }
 }
+
+.scrollButton svg{display:block;will-change:transform}
+@media (prefers-reduced-motion: reduce){.scrollButton svg{transform:none!important}}
