@@ -6,9 +6,6 @@
 
 .stage {
   perspective: 1200px;
-  /* Keep vertical page scroll, but deliver horizontal finger drags as
-     pointermove so touch can tilt/explore like a mouse hover. */
-  touch-action: pan-y pinch-zoom;
 }
 
 .card {
@@ -45,13 +42,18 @@
   transform: rotateX(4deg) rotateY(-8deg) rotate(5deg);
   transform-style: preserve-3d;
   cursor: crosshair;
-  /* pan-y keeps page scroll; pinch-zoom preserves the global manipulation
-     behaviour while letting horizontal drags reach pointer handlers. */
-  touch-action: pan-y pinch-zoom;
+  /* touch-action: none ensures all touch gestures (vertical, horizontal, circular)
+     are delivered as wipe pointer events without triggering native scroll cancellation. */
+  touch-action: none;
   -webkit-user-select: none;
   user-select: none;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+.card[data-revealed="true"],
+.card:disabled {
+  touch-action: auto;
 }
 
 .card::before {

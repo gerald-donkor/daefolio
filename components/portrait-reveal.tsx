@@ -104,7 +104,13 @@ export function PortraitReveal() {
 
     let disposed = false;
     let previous: { x: number; y: number } | null = null;
-    let wipeAudio: { context: AudioContext; filter: BiquadFilterNode; gain: GainNode; noise: AudioBufferSourceNode } | null = null;
+    let wipeAudio: {
+      context: AudioContext;
+      filter: BiquadFilterNode;
+      gain: GainNode;
+      ensureNoise: () => void;
+      stop: () => void;
+    } | null = null;
     let audioPointer: { x: number; y: number; time: number } | null = null;
     let quietTimer = 0;
 
@@ -115,61 +121,110 @@ export function PortraitReveal() {
       const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextClass) return null;
       const audioContext = new AudioContextClass();
-      const buffer = audioContext.createBuffer(1, audioContext.sampleRate, audioContext.sampleRate);
-      const samples = buffer.getChannelData(0);
-      for (let index = 0; index < samples.length; index += 1) samples[index] = Math.random() * 2 - 1;
-      const noise = audioContext.createBufferSource();
       const filter = audioContext.createBiquadFilter();
       const gain = audioContext.createGain();
-      noise.buffer = buffer;
-      noise.loop = true;
       filter.type = 'bandpass';
-      filter.frequency.value = 1100;
-      filter.Q.value = .7;
+      filter.frequency.value = 800;
+      filter.Q.value = .9;
       gain.gain.value = 0;
-      noise.connect(filter).connect(gain).connect(audioContext.destination);
-      noise.start();
-      wipeAudio = { context: audioContext, filter, gain, noise };
+      filter.connect(gain).connect(audioContext.destination);
+
+      let noiseSource: AudioBufferSourceNode | null = null;
+      const ensureNoise = () => {
+        if (audioContext.state !== 'running' || noiseSource) return;
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate, audioContext.sampleRate);
+        const samples = buffer.getChannelData(0);
+        for (let index = 0; index < samples.length; index += 1) samples[index] = Math.random() * 2 - 1;
+        const noise = audioContext.createBufferSource();
+        noise.buffer = buffer;
+        noise.loop = true;
+        noise.connect(filter);
+        noise.onended = () => { if (noiseSource === noise) noiseSource = null; };
+        noise.start();
+        noiseSource = noise;
+      };
+
+      audioContext.onstatechange = () => {
+        if (audioContext.state === 'running') {
+          ensureNoise();
+        }
+      };
+      if (audioContext.state === 'running') {
+        ensureNoise();
+      }
+
+      const stop = () => {
+        if (noiseSource) {
+          try { noiseSource.stop(); } catch {}
+          noiseSource = null;
+        }
+        void audioContext.close().catch(() => {});
+      };
+
+      wipeAudio = { context: audioContext, filter, gain, ensureNoise, stop };
       return wipeAudio;
     };
 
+    const unlockAudio = () => {
+      const current = startWipeAudio();
+      if (!current) return;
+      if (current.context.state === 'suspended') {
+        void current.context.resume().then(() => current.ensureNoise()).catch(() => {});
+      } else if (current.context.state === 'running') {
+        current.ensureNoise();
+      }
+    };
+
     const quietWipeAudio = () => {
-      if (!wipeAudio) return;
+      if (!wipeAudio || wipeAudio.context.state !== 'running') return;
       wipeAudio.gain.gain.setTargetAtTime(0, wipeAudio.context.currentTime, .045);
     };
 
     const updateWipeAudio = (clientX: number, clientY: number) => {
       const current = startWipeAudio();
       if (!current) return;
-      void current.context.resume();
+      if (current.context.state === 'suspended') {
+        void current.context.resume().then(() => current.ensureNoise()).catch(() => {});
+      } else {
+        current.ensureNoise();
+      }
       const now = performance.now();
       const last = audioPointer;
       audioPointer = { x: clientX, y: clientY, time: now };
       if (!last) return;
       const speed = Math.hypot(clientX - last.x, clientY - last.y) / Math.max(now - last.time, 8);
       const intensity = Math.min(1, speed / 1.35);
-      const audioNow = current.context.currentTime;
-      current.filter.frequency.setTargetAtTime(580 + intensity * 2800, audioNow, .025);
-      current.filter.Q.setTargetAtTime(.55 + intensity * 1.25, audioNow, .03);
-      current.gain.gain.setTargetAtTime(.004 + intensity * .055, audioNow, .02);
-      window.clearTimeout(quietTimer);
-      quietTimer = window.setTimeout(quietWipeAudio, 85);
+      if (current.context.state === 'running') {
+        const audioNow = current.context.currentTime;
+        current.filter.frequency.setTargetAtTime(620 + intensity * 3200, audioNow, .025);
+        current.filter.Q.setTargetAtTime(.75 + intensity * 1.45, audioNow, .03);
+        current.gain.gain.setTargetAtTime(.025 + intensity * .16, audioNow, .02);
+        window.clearTimeout(quietTimer);
+        quietTimer = window.setTimeout(quietWipeAudio, 90);
+      }
     };
 
     const revealWipeSound = () => {
       const current = startWipeAudio();
       if (!current) return;
-      void current.context.resume();
-      const now = current.context.currentTime;
-      const duration = .55;
-      current.filter.frequency.cancelScheduledValues(now);
-      current.filter.frequency.setValueAtTime(680, now);
-      current.filter.frequency.exponentialRampToValueAtTime(3200, now + duration * .72);
-      current.filter.frequency.exponentialRampToValueAtTime(900, now + duration);
-      current.gain.gain.cancelScheduledValues(now);
-      current.gain.gain.setValueAtTime(.018, now);
-      current.gain.gain.linearRampToValueAtTime(.07, now + .08);
-      current.gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+      const playRamp = () => {
+        current.ensureNoise();
+        const now = current.context.currentTime;
+        const duration = .55;
+        current.filter.frequency.cancelScheduledValues(now);
+        current.filter.frequency.setValueAtTime(680, now);
+        current.filter.frequency.exponentialRampToValueAtTime(3400, now + duration * .72);
+        current.filter.frequency.exponentialRampToValueAtTime(920, now + duration);
+        current.gain.gain.cancelScheduledValues(now);
+        current.gain.gain.setValueAtTime(.04, now);
+        current.gain.gain.linearRampToValueAtTime(.18, now + .08);
+        current.gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+      };
+      if (current.context.state === 'suspended') {
+        void current.context.resume().then(playRamp).catch(() => {});
+      } else {
+        playRamp();
+      }
     };
     playRevealWipe.current = revealWipeSound;
 
@@ -282,8 +337,8 @@ export function PortraitReveal() {
       quietWipeAudio();
     };
 
-    let touchId: number | null = null;
-    let touchStart: { x: number; y: number } | null = null;
+    let activePointerId: number | null = null;
+    let pointerStart: { x: number; y: number } | null = null;
     let clearTimer = 0;
 
     const measureBoundsIfNeeded = () => {
@@ -298,7 +353,7 @@ export function PortraitReveal() {
       }
     };
 
-    const handlePointerMove = (clientX: number, clientY: number, isTouchDrag: boolean) => {
+    const handlePointerMove = (clientX: number, clientY: number, isDragging: boolean) => {
       measureBoundsIfNeeded();
       const b = bounds.current;
       const x = Math.max(-1, Math.min(1, ((clientX - b.left) / b.width) * 2 - 1));
@@ -316,16 +371,16 @@ export function PortraitReveal() {
       followX(Math.max(-6, Math.min(6, x * 6)));
       followY(Math.max(-6, Math.min(6, y * 6)));
 
-      // Scratch veil on mouse hover or active touch drag
+      // Scratch veil on mouse hover or active touch/mouse drag
       const scale = SIZE / (b.width - FRAME * 2);
       const scratchX = (clientX - b.left - FRAME) * scale;
       const scratchY = (clientY - b.top - FRAME) * scale;
       eraseAt({ x: scratchX, y: scratchY });
       updateWipeAudio(clientX, clientY);
 
-      // Tap suppression detection for touch
-      if (isTouchDrag && touchStart) {
-        if (Math.hypot(clientX - touchStart.x, clientY - touchStart.y) > 12) {
+      // Tap suppression detection for dragging
+      if (isDragging && pointerStart) {
+        if (Math.hypot(clientX - pointerStart.x, clientY - pointerStart.y) > 12) {
           suppressTap.current = true;
         }
       }
@@ -333,21 +388,25 @@ export function PortraitReveal() {
 
     const onPointerMove = (event: PointerEvent) => {
       if (event.pointerType === 'touch') {
-        if (event.pointerId !== touchId) return;
+        if (event.pointerId !== activePointerId) return;
         handlePointerMove(event.clientX, event.clientY, true);
         return;
       }
-      handlePointerMove(event.clientX, event.clientY, false);
+      handlePointerMove(event.clientX, event.clientY, activePointerId === event.pointerId);
     };
 
     const onPointerDown = (event: PointerEvent) => {
       measureBoundsIfNeeded();
+      unlockAudio();
+      if (activePointerId !== null) return;
+      activePointerId = event.pointerId;
+      pointerStart = { x: event.clientX, y: event.clientY };
+      suppressTap.current = false;
+      window.clearTimeout(clearTimer);
+      try {
+        (event.currentTarget as HTMLElement)?.setPointerCapture?.(event.pointerId);
+      } catch {}
       if (event.pointerType === 'touch') {
-        if (touchId !== null) return;
-        touchId = event.pointerId;
-        touchStart = { x: event.clientX, y: event.clientY };
-        suppressTap.current = false;
-        window.clearTimeout(clearTimer);
         handlePointerMove(event.clientX, event.clientY, true);
         return;
       }
@@ -358,16 +417,22 @@ export function PortraitReveal() {
     };
 
     const onPointerUp = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') {
-        if (event.pointerId !== touchId) return;
-        touchId = null;
-        touchStart = null;
-        previous = null;
-        settle();
+      if (event.pointerId === activePointerId) {
+        activePointerId = null;
+        pointerStart = null;
+        try {
+          if ((event.currentTarget as HTMLElement)?.hasPointerCapture?.(event.pointerId)) {
+            (event.currentTarget as HTMLElement)?.releasePointerCapture?.(event.pointerId);
+          }
+        } catch {}
         if (suppressTap.current) {
           window.clearTimeout(clearTimer);
-          clearTimer = window.setTimeout(() => { suppressTap.current = false; }, 600);
+          clearTimer = window.setTimeout(() => { suppressTap.current = false; }, 400);
         }
+      }
+      if (event.pointerType === 'touch') {
+        previous = null;
+        settle();
         return;
       }
       previous = null;
@@ -380,6 +445,12 @@ export function PortraitReveal() {
       previous = null;
       settle();
     };
+
+    const unlockEvents = ['pointerdown', 'touchstart', 'keydown', 'click'] as const;
+    const onWindowUnlock = () => { unlockAudio(); };
+    unlockEvents.forEach((evt) => {
+      window.addEventListener(evt, onWindowUnlock, { passive: true, capture: true });
+    });
 
     area.addEventListener('pointermove', onPointerMove, { passive: true });
     area.addEventListener('pointerdown', onPointerDown, { passive: true });
@@ -403,9 +474,11 @@ export function PortraitReveal() {
       window.clearTimeout(quietTimer);
       quietWipeAudio();
       if (wipeAudio) {
-        wipeAudio.noise.stop();
-        void wipeAudio.context.close();
+        wipeAudio.stop();
       }
+      unlockEvents.forEach((evt) => {
+        window.removeEventListener(evt, onWindowUnlock, { capture: true });
+      });
       area.removeEventListener('pointermove', onPointerMove);
       area.removeEventListener('pointerdown', onPointerDown);
       area.removeEventListener('pointerup', onPointerUp);
