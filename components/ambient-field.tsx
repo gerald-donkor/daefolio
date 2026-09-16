@@ -8,7 +8,7 @@ import { useTheme } from './theme-provider';
 import styles from './ambient-field.module.css';
 
 gsap.registerPlugin(useGSAP);
-type Wisp = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; hue: number; spin: number };
+type Wisp = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; hue: number; spin: 1.2 | 2.4 };
 
 /** A single viewport-sized field: bounded particles, time-based decay, no React pointer updates. */
 export function AmbientField() {
@@ -44,14 +44,22 @@ export function AmbientField() {
         ctx.beginPath(); ctx.ellipse(x, y, mote.size * .55, mote.size * 1.6, -.5, 0, Math.PI * 2); ctx.fill();
       }
       ctx.globalCompositeOperation = theme === 'dark' ? 'lighter' : 'source-over';
-      wisps = wisps.filter(wisp => wisp.age < wisp.life);
+      // Compact in place so the animation does not allocate an array every frame.
+      let liveCount = 0;
+      const curl = 2.4 * dt;
+      const curlCos = Math.cos(curl), curlSin = Math.sin(curl);
+      const burstCurl = 1.2 * dt;
+      const burstCos = Math.cos(burstCurl), burstSin = Math.sin(burstCurl);
       for (const wisp of wisps) {
+        if (wisp.age >= wisp.life) continue;
+        wisps[liveCount++] = wisp;
         wisp.age += dt;
         const progress = Math.min(1, wisp.age / wisp.life);
         const fade = (1 - progress) ** 2;
-        const curl = wisp.spin * dt;
-        const vx = wisp.vx * Math.cos(curl) - wisp.vy * Math.sin(curl);
-        wisp.vy = wisp.vx * Math.sin(curl) + wisp.vy * Math.cos(curl); wisp.vx = vx;
+        const cos = wisp.spin === 2.4 ? curlCos : burstCos;
+        const sin = wisp.spin === 2.4 ? curlSin : burstSin;
+        const vx = wisp.vx * cos - wisp.vy * sin;
+        wisp.vy = wisp.vx * sin + wisp.vy * cos; wisp.vx = vx;
         wisp.x += wisp.vx * dt; wisp.y += wisp.vy * dt;
         const size = wisp.size * (1 + progress * 1.6);
         const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
@@ -63,6 +71,7 @@ export function AmbientField() {
         ctx.save(); ctx.translate(wisp.x, wisp.y); ctx.rotate(Math.atan2(wisp.vy, wisp.vx)); ctx.scale(1.6, .75);
         ctx.fillStyle = gradient; ctx.fillRect(-size, -size, size * 2, size * 2); ctx.restore();
       }
+      wisps.length = liveCount;
     };
     const move = (event: PointerEvent) => {
       if (paused || !fine.matches || event.pointerType === 'touch' || document.hidden) return;
