@@ -76,14 +76,17 @@ export function PortraitReveal() {
         .map(value => String(value).padStart(2, '0')).join(':');
     }, 1000);
 
-    window.addEventListener('resize', measure, { passive: true });
-    window.addEventListener('scroll', measure, { passive: true });
+    // Entering the observation margin measures again before interaction is possible.
+    // Avoid reading off-screen layout on every scroll through the rest of the page.
+    const measureVisible = () => { if (visible) measure(); };
+    window.addEventListener('resize', measureVisible, { passive: true });
+    window.addEventListener('scroll', measureVisible, { passive: true });
 
     return () => {
       observer.disconnect();
       window.clearInterval(timer);
-      window.removeEventListener('resize', measure);
-      window.removeEventListener('scroll', measure);
+      window.removeEventListener('resize', measureVisible);
+      window.removeEventListener('scroll', measureVisible);
     };
   }, [paused]);
 
@@ -139,11 +142,9 @@ export function PortraitReveal() {
       }
     };
     image.addEventListener('load', onImgLoad);
-    if (veilImageRef.current) {
-      veilImageRef.current.addEventListener('load', () => {
-        if (!revealed) paint();
-      });
-    }
+    const veilImage = veilImageRef.current;
+    const onVeilLoad = () => { if (!revealed) paint(); };
+    veilImage?.addEventListener('load', onVeilLoad);
 
     const eraseAt = (point: { x: number; y: number }) => {
       if (canvas.dataset.ready !== 'true') return;
@@ -319,6 +320,7 @@ export function PortraitReveal() {
       reset.current = () => {};
       delete canvas.dataset.ready;
       image.removeEventListener('load', onImgLoad);
+      veilImage?.removeEventListener('load', onVeilLoad);
       visObserver.disconnect();
       document.removeEventListener('visibilitychange', syncPlayback);
       window.clearTimeout(clearTimer);
