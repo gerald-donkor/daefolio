@@ -20,6 +20,7 @@ export function PortraitReveal() {
   const timecode = useRef<HTMLSpanElement>(null);
   const elapsed = useRef(0);
   const reset = useRef<() => void>(() => {});
+  const playRevealWipe = useRef<() => void>(() => {});
   // Set when a touch drag exceeds the tap slop so the trailing click is ignored.
   const suppressTap = useRef(false);
   const [revealed, setRevealed] = useState(false);
@@ -103,6 +104,74 @@ export function PortraitReveal() {
 
     let disposed = false;
     let previous: { x: number; y: number } | null = null;
+    let wipeAudio: { context: AudioContext; filter: BiquadFilterNode; gain: GainNode; noise: AudioBufferSourceNode } | null = null;
+    let audioPointer: { x: number; y: number; time: number } | null = null;
+    let quietTimer = 0;
+
+    // The noise's volume and brightness map directly to pointer velocity, so
+    // the sound follows the canvas wipe instead of playing as a detached clip.
+    const startWipeAudio = () => {
+      if (wipeAudio) return wipeAudio;
+      const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) return null;
+      const audioContext = new AudioContextClass();
+      const buffer = audioContext.createBuffer(1, audioContext.sampleRate, audioContext.sampleRate);
+      const samples = buffer.getChannelData(0);
+      for (let index = 0; index < samples.length; index += 1) samples[index] = Math.random() * 2 - 1;
+      const noise = audioContext.createBufferSource();
+      const filter = audioContext.createBiquadFilter();
+      const gain = audioContext.createGain();
+      noise.buffer = buffer;
+      noise.loop = true;
+      filter.type = 'bandpass';
+      filter.frequency.value = 1100;
+      filter.Q.value = .7;
+      gain.gain.value = 0;
+      noise.connect(filter).connect(gain).connect(audioContext.destination);
+      noise.start();
+      wipeAudio = { context: audioContext, filter, gain, noise };
+      return wipeAudio;
+    };
+
+    const quietWipeAudio = () => {
+      if (!wipeAudio) return;
+      wipeAudio.gain.gain.setTargetAtTime(0, wipeAudio.context.currentTime, .045);
+    };
+
+    const updateWipeAudio = (clientX: number, clientY: number) => {
+      const current = startWipeAudio();
+      if (!current) return;
+      void current.context.resume();
+      const now = performance.now();
+      const last = audioPointer;
+      audioPointer = { x: clientX, y: clientY, time: now };
+      if (!last) return;
+      const speed = Math.hypot(clientX - last.x, clientY - last.y) / Math.max(now - last.time, 8);
+      const intensity = Math.min(1, speed / 1.35);
+      const audioNow = current.context.currentTime;
+      current.filter.frequency.setTargetAtTime(580 + intensity * 2800, audioNow, .025);
+      current.filter.Q.setTargetAtTime(.55 + intensity * 1.25, audioNow, .03);
+      current.gain.gain.setTargetAtTime(.004 + intensity * .055, audioNow, .02);
+      window.clearTimeout(quietTimer);
+      quietTimer = window.setTimeout(quietWipeAudio, 85);
+    };
+
+    const revealWipeSound = () => {
+      const current = startWipeAudio();
+      if (!current) return;
+      void current.context.resume();
+      const now = current.context.currentTime;
+      const duration = .55;
+      current.filter.frequency.cancelScheduledValues(now);
+      current.filter.frequency.setValueAtTime(680, now);
+      current.filter.frequency.exponentialRampToValueAtTime(3200, now + duration * .72);
+      current.filter.frequency.exponentialRampToValueAtTime(900, now + duration);
+      current.gain.gain.cancelScheduledValues(now);
+      current.gain.gain.setValueAtTime(.018, now);
+      current.gain.gain.linearRampToValueAtTime(.07, now + .08);
+      current.gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+    };
+    playRevealWipe.current = revealWipeSound;
 
     // High-performance canvas paint with instant GPU texture blit
     const paint = () => {
@@ -209,6 +278,8 @@ export function PortraitReveal() {
       followX(0);
       followY(0);
       previous = null;
+      audioPointer = null;
+      quietWipeAudio();
     };
 
     let touchId: number | null = null;
@@ -250,6 +321,7 @@ export function PortraitReveal() {
       const scratchX = (clientX - b.left - FRAME) * scale;
       const scratchY = (clientY - b.top - FRAME) * scale;
       eraseAt({ x: scratchX, y: scratchY });
+      updateWipeAudio(clientX, clientY);
 
       // Tap suppression detection for touch
       if (isTouchDrag && touchStart) {
@@ -282,6 +354,7 @@ export function PortraitReveal() {
       const b = bounds.current;
       const scale = SIZE / (b.width - FRAME * 2);
       eraseAt({ x: (event.clientX - b.left - FRAME) * scale, y: (event.clientY - b.top - FRAME) * scale });
+      updateWipeAudio(event.clientX, event.clientY);
     };
 
     const onPointerUp = (event: PointerEvent) => {
@@ -298,6 +371,8 @@ export function PortraitReveal() {
         return;
       }
       previous = null;
+      audioPointer = null;
+      quietWipeAudio();
     };
 
     const onPointerLeave = (event: PointerEvent) => {
@@ -318,12 +393,19 @@ export function PortraitReveal() {
     return () => {
       disposed = true;
       reset.current = () => {};
+      playRevealWipe.current = () => {};
       delete canvas.dataset.ready;
       image.removeEventListener('load', onImgLoad);
       veilImage?.removeEventListener('load', onVeilLoad);
       visObserver.disconnect();
       document.removeEventListener('visibilitychange', syncPlayback);
       window.clearTimeout(clearTimer);
+      window.clearTimeout(quietTimer);
+      quietWipeAudio();
+      if (wipeAudio) {
+        wipeAudio.noise.stop();
+        void wipeAudio.context.close();
+      }
       area.removeEventListener('pointermove', onPointerMove);
       area.removeEventListener('pointerdown', onPointerDown);
       area.removeEventListener('pointerup', onPointerUp);
@@ -364,6 +446,7 @@ export function PortraitReveal() {
           return;
         }
         if (revealed) reset.current();
+        else playRevealWipe.current();
         setRevealed(!revealed);
       }}
     >
