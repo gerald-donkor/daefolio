@@ -1,3 +1,9 @@
 import type { NextConfig } from 'next';
-const config: NextConfig = { output: 'export', images: { unoptimized: true } };
+const config: NextConfig = {
+  output: 'export',
+  images: { unoptimized: true },
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: true,
+};
 export default config;
