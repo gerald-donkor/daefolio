@@ -5,16 +5,18 @@ import Image from 'next/image';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ArrowUpRight, ArrowUp, ArrowDown, Menu, Copy, Check, Asterisk } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { Work } from '@/components/work';
 import { Playground } from '@/components/playground';
 import { AmbientField } from '@/components/ambient-field';
 import { ContactVideo } from '@/components/contact-video';
-import { PortraitReveal } from '@/components/portrait-reveal';
 import { useMotionPreference } from '@/components/motion-provider';
 import { CursorFollower, usePortfolioMotion } from '@/components/portfolio-motion';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from '@/components/ui/dialog';
 import { GmailIcon, LinkedinIcon, GithubIcon, XIcon } from '@/components/contact-icons';
 import styles from './home.module.css';
+
+const PortraitReveal = dynamic(() => import('@/components/portrait-reveal').then(m => m.PortraitReveal), { ssr: true });
 
 gsap.registerPlugin(useGSAP);
 
