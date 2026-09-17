@@ -69,6 +69,7 @@ export function MobileMenu() {
   const [menu, setMenu] = useState(false);
   const [panelNode, setPanelNode] = useState<HTMLDivElement | null>(null);
   const [overlayNode, setOverlayNode] = useState<HTMLDivElement | null>(null);
+  const menuTrigger = useRef<HTMLButtonElement>(null);
   const menuTarget = useRef<string | null>(null);
   const menuTimeline = useRef<gsap.core.Timeline | null>(null);
   const isClosing = useRef(false);
@@ -81,6 +82,11 @@ export function MobileMenu() {
     const wordmark = menuPanel.querySelector('.menu-wordmark');
     const closeButton = menuPanel.querySelector('.dialog-close');
     const links = menuPanel.querySelectorAll('nav a');
+    const triggerBounds = menuTrigger.current?.getBoundingClientRect();
+    const panelBounds = menuPanel.getBoundingClientRect();
+    const transformOrigin = triggerBounds
+      ? `${triggerBounds.left + triggerBounds.width / 2 - panelBounds.left}px ${triggerBounds.top + triggerBounds.height / 2 - panelBounds.top}px`
+      : '100% 0%';
 
     if (paused) {
       gsap.set([menuOverlay, menuPanel, wordmark, closeButton, links], { clearProps: 'all' });
@@ -97,16 +103,28 @@ export function MobileMenu() {
       .fromTo(menuOverlay, { autoAlpha: 0 }, { autoAlpha: 1, duration: .36 }, 'summon')
       .fromTo(menuPanel, {
         autoAlpha: 0,
-        x: 22,
-        y: -20,
-        scaleX: .14,
-        scaleY: .055,
-        skewX: -9,
-        skewY: 4,
-        borderRadius: '52% 0 42% 58%',
-        transformOrigin: '100% 0%',
+        x: 0,
+        y: 0,
+        scaleX: .012,
+        scaleY: .012,
+        skewX: 0,
+        skewY: 0,
+        borderRadius: '50%',
+        transformOrigin,
       }, {
         autoAlpha: 1,
+        x: 4,
+        y: -2,
+        scaleX: .2,
+        scaleY: .24,
+        skewX: -7,
+        skewY: 2,
+        borderRadius: '46% 0 38% 52%',
+        duration: .1,
+        ease: 'power2.out',
+      }, 'summon+=.02')
+      .addLabel('plume')
+      .to(menuPanel, {
         x: 6,
         y: -3,
         scaleX: .42,
@@ -114,9 +132,9 @@ export function MobileMenu() {
         skewX: -5,
         skewY: 1,
         borderRadius: '28% 0 20% 34%',
-        duration: .34,
+        duration: .24,
         ease: 'sine.inOut',
-      }, 'summon+=.04')
+      }, 'plume')
       .addLabel('bloom')
       .to(menuPanel, {
         x: 0,
@@ -154,7 +172,7 @@ export function MobileMenu() {
       }, 'bloom+=.18');
 
     menuTimeline.current = timeline;
-    timeline.timeScale(1.35).play(0);
+    timeline.timeScale(2.1).play(0);
     return () => {
       menuTimeline.current = null;
       timeline.kill();
@@ -182,7 +200,7 @@ export function MobileMenu() {
   };
 
   return <Dialog open={menu} onOpenChange={changeMenu}>
-    <DialogTrigger asChild><button className={styles.menuButton} aria-label="Open menu"><Menu /></button></DialogTrigger>
+    <DialogTrigger asChild><button ref={menuTrigger} className={styles.menuButton} aria-label="Open menu"><Menu /></button></DialogTrigger>
     <DialogContent ref={setPanelNode} overlayRef={setOverlayNode} overlayClassName="mobile-menu-overlay" className="mobile-dialog" onCloseAutoFocus={event => {
       const target = menuTarget.current ? document.getElementById(menuTarget.current) : null;
       menuTarget.current = null;
