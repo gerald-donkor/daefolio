@@ -67,10 +67,123 @@ export function HomeAtmosphere() {
 export function MobileMenu() {
   const { paused } = useMotionPreference();
   const [menu, setMenu] = useState(false);
+  const [panelNode, setPanelNode] = useState<HTMLDivElement | null>(null);
+  const [overlayNode, setOverlayNode] = useState<HTMLDivElement | null>(null);
   const menuTarget = useRef<string | null>(null);
-  return <Dialog open={menu} onOpenChange={setMenu}>
+  const menuTimeline = useRef<gsap.core.Timeline | null>(null);
+  const isClosing = useRef(false);
+
+  useGSAP(() => {
+    const menuPanel = panelNode;
+    const menuOverlay = overlayNode;
+    if (!menu || !menuPanel || !menuOverlay) return;
+
+    const wordmark = menuPanel.querySelector('.menu-wordmark');
+    const closeButton = menuPanel.querySelector('.dialog-close');
+    const links = menuPanel.querySelectorAll('nav a');
+
+    if (paused) {
+      gsap.set([menuOverlay, menuPanel, wordmark, closeButton, links], { clearProps: 'all' });
+      menuTimeline.current = null;
+      return;
+    }
+
+    const timeline = gsap.timeline({
+      paused: true,
+      defaults: { ease: 'power3.out' },
+    });
+    timeline
+      .addLabel('summon', 0)
+      .fromTo(menuOverlay, { autoAlpha: 0 }, { autoAlpha: 1, duration: .44 }, 'summon')
+      .fromTo(menuPanel, {
+        autoAlpha: 0,
+        x: 22,
+        y: -20,
+        scaleX: .14,
+        scaleY: .055,
+        skewX: -9,
+        skewY: 4,
+        borderRadius: '52% 0 42% 58%',
+        transformOrigin: '100% 0%',
+      }, {
+        autoAlpha: 1,
+        x: 6,
+        y: -3,
+        scaleX: .42,
+        scaleY: .96,
+        skewX: -5,
+        skewY: 1,
+        borderRadius: '28% 0 20% 34%',
+        duration: .42,
+        ease: 'sine.inOut',
+      }, 'summon+=.04')
+      .addLabel('bloom')
+      .to(menuPanel, {
+        x: 0,
+        y: 0,
+        scaleX: 1.02,
+        scaleY: .99,
+        skewX: .7,
+        skewY: 0,
+        borderRadius: '2% 0 1% 3%',
+        duration: .68,
+        ease: 'power4.out',
+      }, 'bloom')
+      .to(menuPanel, {
+        scaleX: 1,
+        scaleY: 1,
+        skewX: 0,
+        borderRadius: 0,
+        duration: .18,
+        ease: 'sine.out',
+      })
+      .fromTo([wordmark, closeButton], { autoAlpha: 0, y: -12 }, {
+        autoAlpha: 1,
+        y: 0,
+        duration: .38,
+        stagger: .06,
+      }, 'bloom+=.13')
+      .fromTo(links, { autoAlpha: 0, x: 24, y: 34, skewY: 4 }, {
+        autoAlpha: 1,
+        x: 0,
+        y: 0,
+        skewY: 0,
+        duration: .52,
+        stagger: .075,
+        ease: 'power4.out',
+      }, 'bloom+=.18');
+
+    menuTimeline.current = timeline;
+    timeline.play(0);
+    return () => {
+      menuTimeline.current = null;
+      timeline.kill();
+    };
+  }, { dependencies: [menu, paused, panelNode, overlayNode], revertOnUpdate: true });
+
+  const changeMenu = (nextOpen: boolean) => {
+    if (nextOpen) {
+      isClosing.current = false;
+      setMenu(true);
+      return;
+    }
+    const timeline = menuTimeline.current;
+    if (paused || !timeline) {
+      setMenu(false);
+      return;
+    }
+    if (isClosing.current) return;
+    isClosing.current = true;
+    timeline.eventCallback('onReverseComplete', () => {
+      isClosing.current = false;
+      setMenu(false);
+    });
+    timeline.timeScale(1.65).reverse();
+  };
+
+  return <Dialog open={menu} onOpenChange={changeMenu}>
     <DialogTrigger asChild><button className={styles.menuButton} aria-label="Open menu"><Menu /></button></DialogTrigger>
-    <DialogContent className="mobile-dialog" onCloseAutoFocus={event => {
+    <DialogContent ref={setPanelNode} overlayRef={setOverlayNode} overlayClassName="mobile-menu-overlay" className="mobile-dialog" onCloseAutoFocus={event => {
       const target = menuTarget.current ? document.getElementById(menuTarget.current) : null;
       menuTarget.current = null;
       if (target) { event.preventDefault(); target.focus({ preventScroll: true }); target.scrollIntoView({ behavior: paused ? 'instant' : 'smooth' }); }

@@ -579,8 +579,11 @@ export function PortraitReveal() {
       followX(Math.max(-6, Math.min(6, x * 6)));
       followY(Math.max(-6, Math.min(6, y * 6)));
 
-      // The visual cloth and the canvas point share this exact coordinate map.
-      if (activePointerId === pointerId && !revealedRef.current) {
+      // A mouse wipes on hover; touch/pen input wipes only after contact. The
+      // visual cloth and canvas point share this exact coordinate map.
+      const isWiping = pointerType === 'mouse' || activePointerId === pointerId;
+      button.dataset.wiping = String(isWiping && !revealedRef.current);
+      if (isWiping && !revealedRef.current) {
         const point = { x: localX / surfaceWidth * SIZE, y: localY / surfaceHeight * SIZE };
         const state = eraseAt(point);
         button.dataset.wipeState = state;
@@ -808,7 +811,7 @@ export function PortraitReveal() {
         onClick={toggleReveal}
         aria-label={revealed ? 'Clean the glass again' : 'Show the full portrait'}
       >
-        <span className={styles.desktopHint}>{revealed ? 'Click to reset' : 'Move to explore · click to reveal'}</span>
+        <span className={styles.desktopHint}>{revealed ? 'Click to reset' : 'Move to wipe · click to reveal'}</span>
         <span className={styles.touchHint}>{revealed ? 'Tap to reset' : 'Drag to explore · tap to reveal'}</span>
       </button>
     )}

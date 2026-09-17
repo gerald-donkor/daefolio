@@ -233,9 +233,10 @@ button, a, [tabindex] { touch-action: manipulation; }
   .motion-toggle { right: 76px; top: 16px; bottom: auto; width: 44px; min-height: 44px; padding: 0; justify-content: center; box-shadow: none; }
   .motion-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .project-aetherfield .mini-pill { visibility: hidden; }
-  .mobile-dialog { inset: 0; transform: none; width: 100%; height: 100dvh; max-height: 100dvh; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); border: 0; border-radius: 0; display: flex; flex-direction: column; animation: fade-in .25s; }
+  .mobile-menu-overlay { animation: none; }
+  .mobile-dialog { inset: 0; transform: none; transform-origin: 100% 0; width: 100%; height: 100dvh; max-height: 100dvh; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); border: 0; border-radius: 0; display: flex; flex-direction: column; overflow: hidden; animation: none; will-change: transform, opacity; }
   .mobile-dialog nav { margin-block: auto; gap: 16px; font-family: var(--font-serif); font-size: clamp(38px, 13vw, 68px); }
-  .mobile-dialog nav a { display: flex; align-items: center; justify-content: space-between; gap:12px; border-bottom: 1px solid var(--line-dark); padding-block: 10px; min-height:44px; }
+  .mobile-dialog nav a { display: flex; align-items: center; justify-content: space-between; gap:12px; border-bottom: 1px solid var(--line-dark); padding-block: 10px; min-height:44px; will-change: transform, opacity; }
   .mobile-dialog nav svg { width: 28px; color: var(--coral); }.menu-wordmark { font-size: 18px; }.menu-foot { color: var(--muted); font-size: 12px; padding-bottom: 24px; }
 }
 /* Shared UI primitives stay usable from 320px phones to ultrawide. */

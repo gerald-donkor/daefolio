@@ -8,7 +8,7 @@
   perspective: 1200px;
 }
 
-.card {
+.portrait .card {
   display: block;
   width: 100%;
   padding: 10px;
@@ -51,12 +51,9 @@
   backface-visibility: hidden;
 }
 
-.card[data-revealed="true"] {
-  cursor: pointer;
-  touch-action: auto;
-}
+.portrait .card[data-revealed="true"] { cursor: pointer; }
 
-.card:disabled {
+.portrait .card:disabled {
   touch-action: auto;
 }
 
