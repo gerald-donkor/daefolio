@@ -41,7 +41,7 @@
     0 48px 96px #00000040;
   transform: rotateX(4deg) rotateY(-8deg) rotate(5deg);
   transform-style: preserve-3d;
-  cursor: crosshair;
+  cursor: none;
   /* touch-action: none ensures all touch gestures (vertical, horizontal, circular)
      are delivered as wipe pointer events without triggering native scroll cancellation. */
   touch-action: none;
@@ -51,7 +51,11 @@
   backface-visibility: hidden;
 }
 
-.card[data-revealed="true"],
+.card[data-revealed="true"] {
+  cursor: pointer;
+  touch-action: auto;
+}
+
 .card:disabled {
   touch-action: auto;
 }
@@ -115,7 +119,7 @@
 .surface::before {
   content: '';
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   inset: 0;
   pointer-events: none;
   opacity: var(--glare-strength);
@@ -141,12 +145,110 @@
      to the tonal range of a dark, high-definition camera feed. */
   filter: brightness(.72) contrast(1.38) saturate(1.1);
 }
-.veil { position: absolute; inset: 0; width: 100%; height: 100%; visibility: hidden; }
+.veil { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; visibility: hidden; }
 .veil[data-ready='true'] { visibility: visible; }
+
+.residue {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.cloth {
+  --cloth-x: 50%;
+  --cloth-y: 50%;
+  position: absolute;
+  z-index: 7;
+  left: 0;
+  top: 0;
+  width: 13%;
+  aspect-ratio: 1;
+  border-radius: 43% 57% 52% 48% / 55% 44% 56% 45%;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(calc(var(--cloth-x) - 50%), calc(var(--cloth-y) - 50%), 0) rotate(-7deg) scale(.94, .9);
+  transform-origin: center;
+  overflow: visible;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 24%, #ffffffd1 0 3%, transparent 4%),
+    radial-gradient(ellipse at 38% 30%, #ddf8f1d6 0 18%, transparent 43%),
+    repeating-linear-gradient(24deg, #b9d9d0 0 2px, #7fa79d 2px 4px, #c9e2dc 4px 6px),
+    #9fc4ba;
+  box-shadow:
+    inset 5px 7px 10px #efffffa8,
+    inset -7px -8px 12px #264a4773,
+    0 1px 2px #07110f99,
+    0 0 0 1px #eafff54a;
+  filter: saturate(.72) contrast(1.05);
+  will-change: transform;
+}
+
+.cloth::before,
+.cloth::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.cloth::before {
+  inset: 4%;
+  border-radius: inherit;
+  background: repeating-linear-gradient(93deg, transparent 0 5px, #f4ffff38 5px 6px, transparent 6px 10px);
+  mix-blend-mode: screen;
+}
+
+.cloth::after {
+  z-index: -1;
+  left: 10%;
+  top: 58%;
+  width: 72%;
+  height: 46%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #b6edf04a, #9ad9e010 58%, transparent 74%);
+  filter: blur(3px);
+  transform: rotate(8deg) skewX(-14deg);
+  opacity: .25;
+}
+
+.clothWeave,
+.clothSheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.clothWeave {
+  opacity: .5;
+  background: repeating-linear-gradient(-31deg, transparent 0 3px, #183d3829 3px 4px, transparent 4px 7px);
+}
+
+.clothSheen {
+  inset: 8% 13% 48% 19%;
+  background: linear-gradient(145deg, #fffde8cc, #ddffff20 68%, transparent);
+  filter: blur(.6px);
+}
+
+.card[data-cloth-visible='true']:not([data-revealed='true']) .cloth {
+  opacity: .96;
+  visibility: visible;
+}
+
+.card[data-wiping='true'] .cloth {
+  transform: translate3d(calc(var(--cloth-x) - 50%), calc(var(--cloth-y) - 50%), 0) rotate(-4deg) scale(1, .93);
+  filter: saturate(.82) contrast(1.08) brightness(.98);
+}
+
+.card[data-wipe-state='wet'] .cloth { filter: saturate(.8) brightness(1.08); }
+.card[data-wipe-state='dry'] .cloth { filter: saturate(.48) brightness(1.12); }
 
 .eyeWindow {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   left: 12%;
   top: 31%;
   width: 76%;
@@ -157,18 +259,38 @@
 
 .hint {
   display: block;
+  width: 100%;
   min-height: 16px;
   margin-top: clamp(32px, 4vw, 48px);
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
   color: var(--quiet);
+  font-family: inherit;
   font-size: 11px;
   line-height: 1.6;
   text-align: center;
+  cursor: pointer;
+  transition: color .2s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hint:hover {
+  color: #fff;
+}
+
+.hint:focus-visible {
+  outline: 1px solid #ffffff40;
+  outline-offset: 4px;
+  border-radius: 4px;
+  color: #fff;
 }
 
 .touchHint { display: none; }
 .viewfinder {
   position: absolute;
-  z-index: 3;
+  z-index: 5;
   inset: 0;
   color: #fff;
   background: linear-gradient(#060b1099, transparent 23%, transparent 70%, #060b10b3);
@@ -230,7 +352,7 @@
 @media (prefers-reduced-motion: reduce) { .card { transform: none; } .recordLight { animation: none; } }
 
 .surface::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
+  content: ''; position: absolute; z-index: 3; inset: 0; pointer-events: none;
   background:
     linear-gradient(180deg, #02070b57, #02070b12 23%, transparent 38%),
     radial-gradient(ellipse 90% 60% at calc(var(--light-x) * 1%) calc(var(--light-y) * 1%), #b9d4df14, transparent 55%),
