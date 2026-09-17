@@ -94,7 +94,7 @@ export function MobileMenu() {
     });
     timeline
       .addLabel('summon', 0)
-      .fromTo(menuOverlay, { autoAlpha: 0 }, { autoAlpha: 1, duration: .44 }, 'summon')
+      .fromTo(menuOverlay, { autoAlpha: 0 }, { autoAlpha: 1, duration: .36 }, 'summon')
       .fromTo(menuPanel, {
         autoAlpha: 0,
         x: 22,
@@ -114,7 +114,7 @@ export function MobileMenu() {
         skewX: -5,
         skewY: 1,
         borderRadius: '28% 0 20% 34%',
-        duration: .42,
+        duration: .34,
         ease: 'sine.inOut',
       }, 'summon+=.04')
       .addLabel('bloom')
@@ -126,7 +126,7 @@ export function MobileMenu() {
         skewX: .7,
         skewY: 0,
         borderRadius: '2% 0 1% 3%',
-        duration: .68,
+        duration: .54,
         ease: 'power4.out',
       }, 'bloom')
       .to(menuPanel, {
@@ -134,22 +134,22 @@ export function MobileMenu() {
         scaleY: 1,
         skewX: 0,
         borderRadius: 0,
-        duration: .18,
+        duration: .15,
         ease: 'sine.out',
       })
       .fromTo([wordmark, closeButton], { autoAlpha: 0, y: -12 }, {
         autoAlpha: 1,
         y: 0,
-        duration: .38,
-        stagger: .06,
+        duration: .32,
+        stagger: .05,
       }, 'bloom+=.13')
       .fromTo(links, { autoAlpha: 0, x: 24, y: 34, skewY: 4 }, {
         autoAlpha: 1,
         x: 0,
         y: 0,
         skewY: 0,
-        duration: .52,
-        stagger: .075,
+        duration: .42,
+        stagger: .06,
         ease: 'power4.out',
       }, 'bloom+=.18');
 
