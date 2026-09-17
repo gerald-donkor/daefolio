@@ -154,7 +154,7 @@ export function MobileMenu() {
       }, 'bloom+=.18');
 
     menuTimeline.current = timeline;
-    timeline.play(0);
+    timeline.timeScale(1.35).play(0);
     return () => {
       menuTimeline.current = null;
       timeline.kill();
